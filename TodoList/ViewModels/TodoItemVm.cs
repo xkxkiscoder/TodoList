@@ -1,5 +1,6 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using TodoList.Models;
@@ -7,141 +8,146 @@ using Windows.UI;
 
 namespace TodoList.ViewModels;
 
-/// <summary>列表绑定用的可通知包装。</summary>
-public sealed class TodoItemVm : INotifyPropertyChanged
+/// <summary>列表绑定用的可通知包装（CommunityToolkit.Mvvm + partial 属性 + RelayCommand）。</summary>
+public partial class TodoItemVm : ObservableObject
 {
     public TodoItem Source { get; }
 
-    public TodoItemVm(TodoItem source) => Source = source;
+    public TodoItemVm(TodoItem source)
+    {
+        Source = source;
+        Title = source.Title;
+        Notes = source.Notes;
+        Priority = source.Priority;
+        PlannedDate = source.PlannedDate;
+        SortOrder = source.SortOrder;
+        Status = source.Status;
+    }
 
     public Guid Id => Source.Id;
 
-    public string Title
+    [RelayCommand]
+    private void ToggleStatus()
     {
-        get => Source.Title;
-        set { Source.Title = value; OnPropertyChanged(); }
+        Status = Status.Next();
+        StatusExpanded = false;
+        WeakReferenceMessenger.Default.Send(new TodoStateChangedMsg(this));
     }
 
-    public string Notes
+    [RelayCommand]
+    private void SetNotStarted()
     {
-        get => Source.Notes;
-        set
-        {
-            Source.Notes = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(NotesVisibility));
-        }
+        Status = TodoStatus.NotStarted;
+        StatusExpanded = false;
+        WeakReferenceMessenger.Default.Send(new TodoStateChangedMsg(this));
     }
 
-    public TodoStatus Status
+    [RelayCommand]
+    private void SetInProgress()
     {
-        get => Source.Status;
-        set
-        {
-            if (Source.Status == value) return;
-            // 标记完成时自动归属当天（写入 PlannedDate）
-            Source.ApplyStatus(value);
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(StatusDisplay));
-            OnPropertyChanged(nameof(StatusGlyph));
-            OnPropertyChanged(nameof(StatusBrush));
-            OnPropertyChanged(nameof(TitleBrush));
-            OnPropertyChanged(nameof(StrikeVisibility));
-            OnPropertyChanged(nameof(StatusBackground));
-            OnPropertyChanged(nameof(StatusBorder));
-            OnPropertyChanged(nameof(StatusDotBrush));
-            OnPropertyChanged(nameof(NotStartedDotBrush));
-            OnPropertyChanged(nameof(InProgressDotBrush));
-            OnPropertyChanged(nameof(CompletedDotBrush));
-            OnPropertyChanged(nameof(NotStartedCapsuleBg));
-            OnPropertyChanged(nameof(InProgressCapsuleBg));
-            OnPropertyChanged(nameof(CompletedCapsuleBg));
-            OnPropertyChanged(nameof(StatusChipVis));
-            OnPropertyChanged(nameof(StatusOptionsVis));
-            OnPropertyChanged(nameof(PlannedDate));
-            OnPropertyChanged(nameof(PlannedDateDisplay));
-            OnPropertyChanged(nameof(PlannedDateBrush));
-        }
+        Status = TodoStatus.InProgress;
+        StatusExpanded = false;
+        WeakReferenceMessenger.Default.Send(new TodoStateChangedMsg(this));
     }
 
-    private bool _statusExpanded;
-
-    public bool StatusExpanded
+    [RelayCommand]
+    private void SetCompleted()
     {
-        get => _statusExpanded;
-        set
-        {
-            if (_statusExpanded == value) return;
-            _statusExpanded = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(StatusChipVis));
-            OnPropertyChanged(nameof(StatusOptionsVis));
-        }
+        Status = TodoStatus.Completed;
+        StatusExpanded = false;
+        WeakReferenceMessenger.Default.Send(new TodoStateChangedMsg(this));
     }
 
-    public Visibility StatusChipVis =>
-        StatusExpanded ? Visibility.Collapsed : Visibility.Visible;
+    [RelayCommand]
+    private void OpenEditor() =>
+        WeakReferenceMessenger.Default.Send(new TodoEditMsg(this));
 
-    public Visibility StatusOptionsVis =>
-        StatusExpanded ? Visibility.Visible : Visibility.Collapsed;
+    [RelayCommand]
+    private void Remove() =>
+        WeakReferenceMessenger.Default.Send(new TodoDeleteMsg(this));
 
-    /// <summary>当前状态圆点颜色。</summary>
-    public Brush StatusDotBrush => Parse(Source.Status.ToColorHex());
+    [RelayCommand]
+    private void ExpandStatus() => StatusExpanded = true;
 
-    public Brush NotStartedDotBrush => Parse("#8E8E93");
-    public Brush InProgressDotBrush => Parse("#2F5FD0");
-    public Brush CompletedDotBrush => Parse("#3DCF8E");
+    [RelayCommand]
+    private void CollapseStatus() => StatusExpanded = false;
 
-    /// <summary>展开时当前态高亮，未选中用更实的玻璃底（不过透）。</summary>
-    public Brush NotStartedCapsuleBg =>
-        Status == TodoStatus.NotStarted ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+    [ObservableProperty]
+    public partial string Title { get; set; }
 
-    public Brush InProgressCapsuleBg =>
-        Status == TodoStatus.InProgress ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+    [ObservableProperty]
+    public partial string Notes { get; set; }
 
-    public Brush CompletedCapsuleBg =>
-        Status == TodoStatus.Completed ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+    [ObservableProperty]
+    public partial TodoStatus Status { get; set; }
 
-    /// <summary>收起态胶囊。</summary>
-    public Brush StatusChipBg => Parse("#CCEEF2F8");
-    public Brush StatusChipStroke => Parse("#33000000");
+    [ObservableProperty]
+    public partial TodoPriority Priority { get; set; }
 
-    public TodoPriority Priority
+    [ObservableProperty]
+    public partial DateOnly? PlannedDate { get; set; }
+
+    [ObservableProperty]
+    public partial int SortOrder { get; set; }
+
+    /// <summary>左侧状态胶囊是否展开。</summary>
+    [ObservableProperty]
+    public partial bool StatusExpanded { get; set; }
+
+    partial void OnTitleChanged(string value) => Source.Title = value;
+
+    partial void OnNotesChanged(string value)
     {
-        get => Source.Priority;
-        set
-        {
-            if (Source.Priority == value) return;
-            Source.Priority = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(PriorityDisplay));
-            OnPropertyChanged(nameof(PriorityBrush));
-            OnPropertyChanged(nameof(PriorityChipBackground));
-        }
+        Source.Notes = value;
+        OnPropertyChanged(nameof(NotesVisibility));
     }
 
-    public DateOnly? PlannedDate
+    partial void OnStatusChanged(TodoStatus value)
     {
-        get => Source.PlannedDate;
-        set
-        {
-            if (Source.PlannedDate == value) return;
-            Source.PlannedDate = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(PlannedDateDisplay));
-            OnPropertyChanged(nameof(PlannedDateBrush));
-        }
+        // 标记完成时自动归属当天
+        Source.ApplyStatus(value);
+        OnPropertyChanged(nameof(StatusDisplay));
+        OnPropertyChanged(nameof(StatusGlyph));
+        OnPropertyChanged(nameof(StatusDotBrush));
+        OnPropertyChanged(nameof(TitleBrush));
+        OnPropertyChanged(nameof(StrikeVisibility));
+        OnPropertyChanged(nameof(StatusBackground));
+        OnPropertyChanged(nameof(StatusBorder));
+        OnPropertyChanged(nameof(StatusDotBrush));
+        OnPropertyChanged(nameof(NotStartedDotBrush));
+        OnPropertyChanged(nameof(InProgressDotBrush));
+        OnPropertyChanged(nameof(CompletedDotBrush));
+        OnPropertyChanged(nameof(NotStartedCapsuleBg));
+        OnPropertyChanged(nameof(InProgressCapsuleBg));
+        OnPropertyChanged(nameof(CompletedCapsuleBg));
+        OnPropertyChanged(nameof(StatusChipVis));
+        OnPropertyChanged(nameof(StatusOptionsVis));
+        OnPropertyChanged(nameof(PlannedDate));
+        OnPropertyChanged(nameof(PlannedDateDisplay));
+        OnPropertyChanged(nameof(PlannedDateBrush));
     }
 
-    public int SortOrder
+    partial void OnPriorityChanged(TodoPriority value)
     {
-        get => Source.SortOrder;
-        set
-        {
-            if (Source.SortOrder == value) return;
-            Source.SortOrder = value;
-            OnPropertyChanged();
-        }
+        Source.Priority = value;
+        OnPropertyChanged(nameof(PriorityDisplay));
+        OnPropertyChanged(nameof(PriorityBrush));
+        OnPropertyChanged(nameof(PriorityChipBackground));
+    }
+
+    partial void OnPlannedDateChanged(DateOnly? value)
+    {
+        Source.PlannedDate = value;
+        OnPropertyChanged(nameof(PlannedDateDisplay));
+        OnPropertyChanged(nameof(PlannedDateBrush));
+    }
+
+    partial void OnSortOrderChanged(int value) => Source.SortOrder = value;
+
+    partial void OnStatusExpandedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(StatusChipVis));
+        OnPropertyChanged(nameof(StatusOptionsVis));
     }
 
     public string StatusDisplay => Source.StatusDisplay;
@@ -155,15 +161,29 @@ public sealed class TodoItemVm : INotifyPropertyChanged
     public Visibility OverdueDotVisibility =>
         Source.IsOverdue ? Visibility.Visible : Visibility.Collapsed;
 
-    public Brush StatusBrush => Parse(Source.Status.ToColorHex());
+    public Brush StatusDotBrush => Parse(Source.Status.ToColorHex());
     public Brush PriorityBrush => Parse(Source.Priority.ToColorHex());
 
-    /// <summary>主文/次文跟主题，已完成再降一档。</summary>
+    public Brush NotStartedDotBrush => Parse("#8E8E93");
+    public Brush InProgressDotBrush => Parse("#2F5FD0");
+    public Brush CompletedDotBrush => Parse("#3DCF8E");
+
+    public Brush NotStartedCapsuleBg =>
+        Status == TodoStatus.NotStarted ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+
+    public Brush InProgressCapsuleBg =>
+        Status == TodoStatus.InProgress ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+
+    public Brush CompletedCapsuleBg =>
+        Status == TodoStatus.Completed ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+
+    public Brush StatusChipBg => Parse("#CCEEF2F8");
+    public Brush StatusChipStroke => Parse("#33000000");
+
     public Brush TitleBrush => ThemeBrush(
         Source.IsCompleted ? "TextFillColorTertiaryBrush" : "TextFillColorPrimaryBrush",
         Source.IsCompleted ? "#801B1B1F" : "#1B1B1F");
 
-    /// <summary>已完成标题加删除线。</summary>
     public Visibility StrikeVisibility =>
         Source.IsCompleted ? Visibility.Visible : Visibility.Collapsed;
 
@@ -193,15 +213,20 @@ public sealed class TodoItemVm : INotifyPropertyChanged
         _ => "#1CFF4D4F"
     });
 
+    public Visibility StatusChipVis =>
+        StatusExpanded ? Visibility.Collapsed : Visibility.Visible;
+
+    public Visibility StatusOptionsVis =>
+        StatusExpanded ? Visibility.Visible : Visibility.Collapsed;
+
     private static Brush Parse(string hex)
     {
         var s = hex.StartsWith('#') ? hex[1..] : hex;
         if (s.Length == 6) s = "FF" + s;
         if (s.Length != 8) return new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
 
-        static byte P(string v, int i) => System.Convert.ToByte(v.Substring(i, 2), 16);
-        var color = Color.FromArgb(P(s, 0), P(s, 2), P(s, 4), P(s, 6));
-        return new SolidColorBrush(color);
+        static byte P(string v, int i) => Convert.ToByte(v.Substring(i, 2), 16);
+        return new SolidColorBrush(Color.FromArgb(P(s, 0), P(s, 2), P(s, 4), P(s, 6)));
     }
 
     private static Brush ThemeBrush(string key, string fallbackHex)
@@ -220,11 +245,6 @@ public sealed class TodoItemVm : INotifyPropertyChanged
         return Parse(fallbackHex);
     }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string? name = null) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
     public void RefreshAll()
     {
         OnPropertyChanged(nameof(Title));
@@ -236,7 +256,7 @@ public sealed class TodoItemVm : INotifyPropertyChanged
         OnPropertyChanged(nameof(StatusGlyph));
         OnPropertyChanged(nameof(PriorityDisplay));
         OnPropertyChanged(nameof(PlannedDateDisplay));
-        OnPropertyChanged(nameof(StatusBrush));
+        OnPropertyChanged(nameof(StatusDotBrush));
         OnPropertyChanged(nameof(PriorityBrush));
         OnPropertyChanged(nameof(TitleBrush));
         OnPropertyChanged(nameof(StrikeVisibility));

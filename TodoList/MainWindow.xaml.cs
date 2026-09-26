@@ -17,6 +17,8 @@ namespace TodoList;
 
 public sealed partial class MainWindow : Window
 {
+    public MainViewModel ViewModel { get; } = new();
+
     private enum ViewMode
     {
         All,
@@ -62,6 +64,13 @@ public sealed partial class MainWindow : Window
 
         Root.KeyDown += Root_KeyDown;
         Closed += MainWindow_Closed;
+
+        ViewModel.EditRequested += async (s, vm) =>
+        {
+            await EditAsync(vm);
+            ViewModel.ReloadAfterEdit();
+        };
+        ViewModel.GroupsChanged += (_, _) => UpdateEmptyState();
 
         ShowView(_settings.LastView switch
         {
@@ -222,23 +231,18 @@ public sealed partial class MainWindow : Window
 
         if (_view == ViewMode.Calendar)
         {
+            ViewModel.CurrentView = AppViewMode.Calendar;
             RefreshCalendar();
             return;
         }
 
-        _allItems.Clear();
-        IReadOnlyList<TodoItem> items = _view == ViewMode.Today
-            ? _store.GetToday()
-            : _store.GetGlobal(
-                hideCompleted: _settings.HideCompleted,
-                search: SearchBox.Text,
-                statusFilter: ReadStatusFilter());
+        // 走 ViewModel：加载 + 分组；ItemsSource 由 XAML x:Bind 提供
+        if (_view == ViewMode.Today)
+            ViewModel.CurrentView = AppViewMode.Today;
+        else
+            ViewModel.CurrentView = AppViewMode.All;
 
-        foreach (var item in items)
-            _allItems.Add(new TodoItemVm(item));
-
-        BindGroupedItems();
-        ListCount.Text = _allItems.Count.ToString();
+        ListCount.Text = ViewModel.ListCountText;
         UpdateEmptyState();
     }
 
@@ -289,11 +293,8 @@ public sealed partial class MainWindow : Window
 
     private void GroupHeader_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        if (sender is not FrameworkElement fe || fe.DataContext is not StatusGroup group)
-            return;
-
-        group.Toggle();
-        _groupExpanded[group.Title] = group.IsExpanded;
+        if (sender is FrameworkElement { DataContext: StatusGroup group })
+            group.ToggleExpandCommand.Execute(null);
         e.Handled = true;
     }
 
@@ -313,10 +314,7 @@ public sealed partial class MainWindow : Window
         MonthTitle.Text = $"{_visibleMonth.Year}年{_visibleMonth.Month}月";
         BuildCalendarDays();
 
-        _dayItems.Clear();
-        foreach (var item in _store.GetForDate(_selectedDay))
-            _dayItems.Add(new TodoItemVm(item));
-        BindDayGroupedItems();
+        ViewModel.SelectDay(_selectedDay);
         DayTitle.Text = $"{_selectedDay.Month}月{_selectedDay.Day}日";
     }
 
@@ -510,9 +508,12 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        var item = _store.Add(title, ReadQuickPriority(), ReadQuickDate());
-        if (_view == ViewMode.Calendar && item.PlannedDate is null)
-            _store.SetPlannedDate(item.Id, _selectedDay);
+        // 走 ViewModel：避免与主数据源脱节
+        ViewModel.QuickTitle = title;
+        ViewModel.QuickPriority = ReadQuickPriority();
+        ViewModel.QuickPlannedDate = ReadQuickDate()
+            ?? (_view == ViewMode.Calendar ? _selectedDay : null);
+        ViewModel.AddTodoCommand.Execute(null);
 
         QuickTitle.Text = string.Empty;
         QuickDate.Date = null;
@@ -602,62 +603,13 @@ public sealed partial class MainWindow : Window
         _ => 2
     };
 
-    /// <summary>按 未开始 → 进行中 → 已完成 重排并重建分组（复用 VM）。</summary>
-    private void RegroupList()
-    {
-        if (_allItems.Count == 0) return;
-
-        var ordered = _allItems
-            .OrderBy(i => StatusRank(i.Status))
-            .ThenBy(i => i.SortOrder)
-            .ToList();
-
-        _allItems.Clear();
-        foreach (var item in ordered)
-            _allItems.Add(item);
-
-        BindGroupedItems();
-    }
-
+    /// <summary>状态变更后的窗口侧刷新（分组与 ItemsSource 交给 ViewModel / XAML 绑定）。</summary>
     private void AfterStatusChanged(TodoItemVm vm)
     {
-        _store.Update(vm.Source);
         vm.RefreshAll();
-
-        if (_view == ViewMode.Calendar)
-        {
-            var ordered = _dayItems
-                .OrderBy(i => StatusRank(i.Status))
-                .ThenBy(i => i.SortOrder)
-                .ToList();
-            _dayItems.Clear();
-            foreach (var item in ordered)
-                _dayItems.Add(item);
-            BindDayGroupedItems();
-        }
-        else
-        {
-            RegroupList();
-            if (_view == ViewMode.All
-                && _settings.HideCompleted
-                && vm.Status == TodoStatus.Completed)
-            {
-                _allItems.Remove(vm);
-                BindGroupedItems();
-                UpdateEmptyState();
-            }
-        }
-
+        ViewModel.ReloadAfterEdit();
         UpdateCounts();
-    }
-
-    private void StatusPill_Click(object sender, RoutedEventArgs e)
-    {
-        if ((sender as FrameworkElement)?.DataContext is not TodoItemVm vm)
-            return;
-
-        vm.Status = vm.Status.Next();
-        AfterStatusChanged(vm);
+        UpdateEmptyState();
     }
 
     private void StatusChip_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -718,18 +670,15 @@ public sealed partial class MainWindow : Window
     private void UpdateCounts()
     {
         if (ListCount is null) return;
-
-        if (_view == ViewMode.Today)
-            ListCount.Text = _allItems.Count.ToString();
-        else
-            ListCount.Text = _allItems.Count.ToString();
+        ListCount.Text = ViewModel.ListCountText;
     }
 
     private void UpdateEmptyState()
     {
         if (EmptyPanel is null || this.MainListView is null) return;
-        EmptyPanel.Visibility = _allItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        this.MainListView.Visibility = _allItems.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        var empty = ViewModel.Items.Count == 0;
+        EmptyPanel.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
+        this.MainListView.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void MainListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)

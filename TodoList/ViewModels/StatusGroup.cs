@@ -1,21 +1,19 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace TodoList.ViewModels;
 
 /// <summary>按状态分组的列表分组，支持标题点击折叠。</summary>
-public sealed class StatusGroup : INotifyPropertyChanged
+public partial class StatusGroup : ObservableObject
 {
     private readonly List<TodoItemVm> _all = new();
-    private bool _isExpanded = true;
 
     public StatusGroup(string title, IEnumerable<TodoItemVm> items, bool isExpanded = true)
     {
         Title = title;
         _all.AddRange(items);
-        _isExpanded = isExpanded;
-        ApplyVisibility();
+        IsExpanded = isExpanded;
     }
 
     public string Title { get; }
@@ -26,33 +24,22 @@ public sealed class StatusGroup : INotifyPropertyChanged
 
     public string HeaderText => $"{Title}  {Count}";
 
-    public bool IsExpanded
-    {
-        get => _isExpanded;
-        set
-        {
-            if (_isExpanded == value) return;
-            _isExpanded = value;
-            ApplyVisibility();
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(ChevronGlyph));
-        }
-    }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ChevronGlyph))]
+    public partial bool IsExpanded { get; set; }
 
-    public string ChevronGlyph => _isExpanded ? "▾" : "▸";
+    public string ChevronGlyph => IsExpanded ? "▾" : "▸";
 
-    public void Toggle() => IsExpanded = !IsExpanded;
+    [RelayCommand]
+    private void ToggleExpand() => IsExpanded = !IsExpanded;
+
+    partial void OnIsExpandedChanged(bool value) => ApplyVisibility();
 
     private void ApplyVisibility()
     {
         Items.Clear();
-        if (!_isExpanded) return;
+        if (!IsExpanded) return;
         foreach (var item in _all)
             Items.Add(item);
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string? name = null) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

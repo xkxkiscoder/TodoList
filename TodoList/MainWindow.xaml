@@ -255,7 +255,8 @@
                             ReorderMode="Enabled"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                             ScrollViewer.HorizontalScrollMode="Disabled"
-                            SelectionMode="None">
+                            SelectionMode="None"
+                            ItemsSource="{x:Bind ViewModel.GroupsView.View, Mode=OneWay}">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="Padding" Value="0" />
@@ -319,7 +320,7 @@
                                                 BorderThickness="0"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
-                                                Click="StatusPill_Click"
+                                                Command="{x:Bind ToggleStatusCommand}"
                                                 Visibility="{x:Bind StatusChipVis, Mode=OneWay}"
                                                 ToolTipService.ToolTip="点击循环状态；悬停可选择">
                                                 <TextBlock
@@ -387,7 +388,7 @@
                                             VerticalContentAlignment="Center"
                                             Background="Transparent"
                                             BorderThickness="0"
-                                            Click="StatusPill_Click"
+                                            Command="{x:Bind ToggleStatusCommand}"
                                             ToolTipService.ToolTip="点击循环：未开始 → 进行中 → 已完成">
                                             <TextBlock
                                                 HorizontalAlignment="Center"
@@ -421,7 +422,7 @@
                                             <Button
                                                 Width="28"
                                                 Height="28"
-                                                Click="EditItem_Click"
+                                                Command="{x:Bind OpenEditorCommand}"
                                                 Style="{StaticResource IconBtnStyle}"
                                                 ToolTipService.ToolTip="编辑">
                                                 <FontIcon FontSize="12" Glyph="&#xE70F;" />
@@ -429,7 +430,7 @@
                                             <Button
                                                 Width="28"
                                                 Height="28"
-                                                Click="DeleteItem_Click"
+                                                Command="{x:Bind RemoveCommand}"
                                                 Style="{StaticResource IconBtnStyle}"
                                                 ToolTipService.ToolTip="删除 (可撤销)">
                                                 <FontIcon FontSize="12" Glyph="&#xE74D;" />
@@ -460,8 +461,7 @@
                                                     Background="{ThemeResource SolidChipBrush}"
                                                     BorderThickness="0"
                                                     CornerRadius="8"
-                                                    Click="StatusOption_Click"
-                                                    Tag="NotStarted"
+                                                    Command="{x:Bind SetNotStartedCommand}"
                                                     ToolTipService.ToolTip="未开始">
                                                     <TextBlock
                                                         Text="○"
@@ -477,8 +477,7 @@
                                                     Background="{ThemeResource SolidChipBrush}"
                                                     BorderThickness="0"
                                                     CornerRadius="8"
-                                                    Click="StatusOption_Click"
-                                                    Tag="InProgress"
+                                                    Command="{x:Bind SetInProgressCommand}"
                                                     ToolTipService.ToolTip="进行中">
                                                     <TextBlock
                                                         Text="●"
@@ -494,8 +493,7 @@
                                                     Background="{ThemeResource SolidChipBrush}"
                                                     BorderThickness="0"
                                                     CornerRadius="8"
-                                                    Click="StatusOption_Click"
-                                                    Tag="Completed"
+                                                    Command="{x:Bind SetCompletedCommand}"
                                                     ToolTipService.ToolTip="已完成">
                                                     <TextBlock
                                                         Text="✓"
@@ -695,7 +693,8 @@
                                     x:Name="DayList"
                                     Grid.Row="2"
                                     ScrollViewer.HorizontalScrollMode="Disabled"
-                                    SelectionMode="None">
+                                    SelectionMode="None"
+                                    ItemsSource="{x:Bind ViewModel.DayGroupsView.View, Mode=OneWay}">
                                     <ListView.ItemContainerStyle>
                                         <Style TargetType="ListViewItem">
                                             <Setter Property="Padding" Value="0" />
@@ -768,7 +767,7 @@
                                                     VerticalContentAlignment="Center"
                                                     Background="Transparent"
                                                     BorderThickness="0"
-                                                    Click="StatusPill_Click">
+                                                    Command="{x:Bind ToggleStatusCommand}">
                                                     <TextBlock
                                                         HorizontalAlignment="Stretch"
                                                         FontSize="11"
