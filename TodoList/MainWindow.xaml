@@ -264,6 +264,32 @@
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                                 </Style>
                             </ListView.ItemContainerStyle>
+                            <ListView.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate x:DataType="vm:StatusGroup">
+                                            <Grid
+                                                Padding="2,10,2,4"
+                                                Background="Transparent"
+                                                Tapped="GroupHeader_Tapped">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock
+                                                        FontSize="11"
+                                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                                        Text="{x:Bind ChevronGlyph, Mode=OneWay}"
+                                                        VerticalAlignment="Center" />
+                                                    <TextBlock
+                                                        FontSize="11"
+                                                        FontWeight="SemiBold"
+                                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                                        Text="{x:Bind HeaderText, Mode=OneTime}"
+                                                        VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ListView.GroupStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="vm:TodoItemVm">
                                     <Grid
@@ -670,6 +696,40 @@
                                     Grid.Row="2"
                                     ScrollViewer.HorizontalScrollMode="Disabled"
                                     SelectionMode="None">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="Padding" Value="0" />
+                                            <Setter Property="Margin" Value="0" />
+                                            <Setter Property="MinHeight" Value="0" />
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                    <ListView.GroupStyle>
+                                        <GroupStyle>
+                                            <GroupStyle.HeaderTemplate>
+                                                <DataTemplate x:DataType="vm:StatusGroup">
+                                                    <Grid
+                                                        Padding="2,10,2,4"
+                                                        Background="Transparent"
+                                                        Tapped="GroupHeader_Tapped">
+                                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                                            <TextBlock
+                                                                FontSize="11"
+                                                                Foreground="{ThemeResource SubtleTextBrush}"
+                                                                Text="{x:Bind ChevronGlyph, Mode=OneWay}"
+                                                                VerticalAlignment="Center" />
+                                                            <TextBlock
+                                                                FontSize="11"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{ThemeResource SubtleTextBrush}"
+                                                                Text="{x:Bind HeaderText, Mode=OneTime}"
+                                                                VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </GroupStyle.HeaderTemplate>
+                                        </GroupStyle>
+                                    </ListView.GroupStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="vm:TodoItemVm">
                                             <Grid Padding="2,8" ColumnSpacing="8">

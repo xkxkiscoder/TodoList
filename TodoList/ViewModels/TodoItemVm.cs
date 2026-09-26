@@ -39,7 +39,8 @@ public sealed class TodoItemVm : INotifyPropertyChanged
         set
         {
             if (Source.Status == value) return;
-            Source.Status = value;
+            // 标记完成时自动归属当天（写入 PlannedDate）
+            Source.ApplyStatus(value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(StatusDisplay));
             OnPropertyChanged(nameof(StatusGlyph));
@@ -57,6 +58,9 @@ public sealed class TodoItemVm : INotifyPropertyChanged
             OnPropertyChanged(nameof(CompletedCapsuleBg));
             OnPropertyChanged(nameof(StatusChipVis));
             OnPropertyChanged(nameof(StatusOptionsVis));
+            OnPropertyChanged(nameof(PlannedDate));
+            OnPropertyChanged(nameof(PlannedDateDisplay));
+            OnPropertyChanged(nameof(PlannedDateBrush));
         }
     }
 

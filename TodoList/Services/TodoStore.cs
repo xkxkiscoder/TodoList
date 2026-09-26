@@ -121,8 +121,7 @@ public sealed class TodoStore
     {
         var item = Items.FirstOrDefault(i => i.Id == id);
         if (item is null) return;
-        item.Status = item.Status.Next();
-        item.UpdatedAt = DateTimeOffset.Now;
+        item.ApplyStatus(item.Status.Next());
         NotifyChanged();
     }
 
@@ -130,8 +129,7 @@ public sealed class TodoStore
     {
         var item = Items.FirstOrDefault(i => i.Id == id);
         if (item is null) return;
-        item.Status = status;
-        item.UpdatedAt = DateTimeOffset.Now;
+        item.ApplyStatus(status);
         NotifyChanged();
     }
 
@@ -165,10 +163,20 @@ public sealed class TodoStore
         NotifyChanged();
     }
 
-    /// <summary>全局清单：添加顺序。</summary>
+    private static int StatusRank(TodoStatus status) => status switch
+    {
+        TodoStatus.NotStarted => 0,
+        TodoStatus.InProgress => 1,
+        _ => 2
+    };
+
+    /// <summary>全局清单：未开始 → 进行中 → 已完成，组内按添加顺序。</summary>
     public IReadOnlyList<TodoItem> GetGlobal(bool hideCompleted = false, string? search = null, TodoStatus? statusFilter = null)
     {
-        IEnumerable<TodoItem> query = Items.OrderBy(i => i.SortOrder).ThenBy(i => i.CreatedAt);
+        IEnumerable<TodoItem> query = Items
+            .OrderBy(i => StatusRank(i.Status))
+            .ThenBy(i => i.SortOrder)
+            .ThenBy(i => i.CreatedAt);
 
         if (hideCompleted)
             query = query.Where(i => i.Status != TodoStatus.Completed);
@@ -187,13 +195,14 @@ public sealed class TodoStore
         return query.ToList();
     }
 
-    /// <summary>今日计划：计划日=今天 ∪ 逾期未完成。逾期在前，其余按添加顺序。</summary>
+    /// <summary>今日计划：计划日=今天 ∪ 逾期；未开始 → 进行中 → 已完成。</summary>
     public IReadOnlyList<TodoItem> GetToday()
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
         return Items
             .Where(i => i.PlannedDate == today || i.IsOverdue)
-            .OrderBy(i => i.IsOverdue ? 0 : 1)
+            .OrderBy(i => StatusRank(i.Status))
+            .ThenBy(i => i.IsOverdue ? 0 : 1)
             .ThenBy(i => i.SortOrder)
             .ToList();
     }
@@ -202,7 +211,8 @@ public sealed class TodoStore
     {
         return Items
             .Where(i => i.PlannedDate == date)
-            .OrderBy(i => i.SortOrder)
+            .OrderBy(i => StatusRank(i.Status))
+            .ThenBy(i => i.SortOrder)
             .ToList();
     }
 

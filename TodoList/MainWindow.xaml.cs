@@ -3,6 +3,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using TodoList.Models;
 using TodoList.Services;
@@ -38,6 +39,7 @@ public sealed partial class MainWindow : Window
     private bool _suppressSettingsEvents;
     private DispatcherTimer? _statusCollapseTimer;
     private TodoItemVm? _expandedStatusVm;
+    private readonly Dictionary<string, bool> _groupExpanded = new();
 
     public MainWindow()
     {
@@ -235,9 +237,64 @@ public sealed partial class MainWindow : Window
         foreach (var item in items)
             _allItems.Add(new TodoItemVm(item));
 
-        this.MainListView.ItemsSource = _allItems;
+        BindGroupedItems();
         ListCount.Text = _allItems.Count.ToString();
         UpdateEmptyState();
+    }
+
+    /// <summary>按状态分组绑定到列表（未开始 / 进行中 / 已完成 + 数量，标题可折叠）。</summary>
+    private void BindGroupedItems()
+    {
+        BindGroupsTo(this.MainListView, _allItems);
+    }
+
+    private void BindDayGroupedItems()
+    {
+        BindGroupsTo(DayList, _dayItems);
+    }
+
+    private void BindGroupsTo(ListView listView, IEnumerable<TodoItemVm> source)
+    {
+        StatusGroup Make(string title, TodoStatus status)
+        {
+            if (!_groupExpanded.TryGetValue(title, out var expanded))
+            {
+                expanded = true;
+                _groupExpanded[title] = true;
+            }
+
+            return new StatusGroup(
+                title,
+                source.Where(i => i.Status == status),
+                expanded);
+        }
+
+        var groups = new List<StatusGroup>
+        {
+            Make("未开始", TodoStatus.NotStarted),
+            Make("进行中", TodoStatus.InProgress),
+            Make("已完成", TodoStatus.Completed)
+        };
+
+        groups.RemoveAll(g => g.Count == 0);
+
+        var view = new CollectionViewSource
+        {
+            Source = groups,
+            IsSourceGrouped = true,
+            ItemsPath = new PropertyPath(nameof(StatusGroup.Items))
+        };
+        listView.ItemsSource = view.View;
+    }
+
+    private void GroupHeader_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe || fe.DataContext is not StatusGroup group)
+            return;
+
+        group.Toggle();
+        _groupExpanded[group.Title] = group.IsExpanded;
+        e.Handled = true;
     }
 
     private TodoStatus? ReadStatusFilter()
@@ -259,7 +316,7 @@ public sealed partial class MainWindow : Window
         _dayItems.Clear();
         foreach (var item in _store.GetForDate(_selectedDay))
             _dayItems.Add(new TodoItemVm(item));
-        DayList.ItemsSource = _dayItems;
+        BindDayGroupedItems();
         DayTitle.Text = $"{_selectedDay.Month}月{_selectedDay.Day}日";
     }
 
@@ -538,25 +595,69 @@ public sealed partial class MainWindow : Window
         Snack.Visibility = Visibility.Collapsed;
     }
 
+    private static int StatusRank(TodoStatus status) => status switch
+    {
+        TodoStatus.NotStarted => 0,
+        TodoStatus.InProgress => 1,
+        _ => 2
+    };
+
+    /// <summary>按 未开始 → 进行中 → 已完成 重排并重建分组（复用 VM）。</summary>
+    private void RegroupList()
+    {
+        if (_allItems.Count == 0) return;
+
+        var ordered = _allItems
+            .OrderBy(i => StatusRank(i.Status))
+            .ThenBy(i => i.SortOrder)
+            .ToList();
+
+        _allItems.Clear();
+        foreach (var item in ordered)
+            _allItems.Add(item);
+
+        BindGroupedItems();
+    }
+
+    private void AfterStatusChanged(TodoItemVm vm)
+    {
+        _store.Update(vm.Source);
+        vm.RefreshAll();
+
+        if (_view == ViewMode.Calendar)
+        {
+            var ordered = _dayItems
+                .OrderBy(i => StatusRank(i.Status))
+                .ThenBy(i => i.SortOrder)
+                .ToList();
+            _dayItems.Clear();
+            foreach (var item in ordered)
+                _dayItems.Add(item);
+            BindDayGroupedItems();
+        }
+        else
+        {
+            RegroupList();
+            if (_view == ViewMode.All
+                && _settings.HideCompleted
+                && vm.Status == TodoStatus.Completed)
+            {
+                _allItems.Remove(vm);
+                BindGroupedItems();
+                UpdateEmptyState();
+            }
+        }
+
+        UpdateCounts();
+    }
+
     private void StatusPill_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not TodoItemVm vm)
             return;
 
         vm.Status = vm.Status.Next();
-        _store.Update(vm.Source);
-        vm.RefreshAll();
-
-        // 只更新计数与可能隐藏的项，避免整表重建抖动
-        UpdateCounts();
-
-        if (_view != ViewMode.Calendar
-            && _settings.HideCompleted
-            && vm.Status == TodoStatus.Completed)
-        {
-            _allItems.Remove(vm);
-            UpdateEmptyState();
-        }
+        AfterStatusChanged(vm);
     }
 
     private void StatusChip_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -611,17 +712,7 @@ public sealed partial class MainWindow : Window
         };
         vm.StatusExpanded = false;
         _expandedStatusVm = null;
-        _store.Update(vm.Source);
-        vm.RefreshAll();
-        UpdateCounts();
-
-        if (_view != ViewMode.Calendar
-            && _settings.HideCompleted
-            && vm.Status == TodoStatus.Completed)
-        {
-            _allItems.Remove(vm);
-            UpdateEmptyState();
-        }
+        AfterStatusChanged(vm);
     }
 
     private void UpdateCounts()

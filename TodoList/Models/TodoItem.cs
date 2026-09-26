@@ -42,6 +42,15 @@ public sealed class TodoItem
     [JsonIgnore]
     public bool BelongsToToday => IsDueToday || IsOverdue;
 
+    /// <summary>切换状态；标记完成时自动归属当天。</summary>
+    public void ApplyStatus(TodoStatus status)
+    {
+        Status = status;
+        if (status == TodoStatus.Completed)
+            PlannedDate = DateOnly.FromDateTime(DateTime.Today);
+        UpdatedAt = DateTimeOffset.Now;
+    }
+
     [JsonIgnore]
     public string StatusDisplay => Status.ToDisplay();
 
