@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using TodoList.Models;
 using TodoList.Services;
@@ -33,6 +35,7 @@ public partial class MainViewModel : ObservableObject,
     private readonly AppSettings _settings = AppSettings.Load();
     private readonly Dictionary<string, bool> _groupExpanded = new();
     private TodoItem? _pendingDelete;
+    private readonly DispatcherQueueTimer _snackTimer;
 
     /// <summary>主列表分组视图（XAML 绑定源）。</summary>
     [ObservableProperty]
@@ -64,6 +67,14 @@ public partial class MainViewModel : ObservableObject,
         WeakReferenceMessenger.Default.RegisterAll(this);
         LoadItems();
         SyncSettingsToState();
+
+        _snackTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _snackTimer.Interval = TimeSpan.FromSeconds(5);
+        _snackTimer.Tick += (_, _) =>
+        {
+            _pendingDelete = null;
+            SnackVisible = false;
+        };
     }
 
     public AppSettings Settings => _settings;
@@ -104,6 +115,18 @@ public partial class MainViewModel : ObservableObject,
 
     [ObservableProperty]
     public partial bool SnackVisible { get; set; }
+
+    /// <summary>撤销条可见性（供 XAML 绑定）。</summary>
+    public Visibility SnackVisibility =>
+        SnackVisible ? Visibility.Visible : Visibility.Collapsed;
+
+    partial void OnSnackVisibleChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SnackVisibility));
+        _snackTimer.Stop();
+        if (value)
+            _snackTimer.Start();
+    }
 
     [ObservableProperty]
     public partial bool EmptyVisible { get; set; }
@@ -276,6 +299,13 @@ public partial class MainViewModel : ObservableObject,
         LoadItems();
         if (CurrentView == AppViewMode.Calendar)
             LoadCalendarDay();
+    }
+
+    /// <summary>Esc 关闭撤销条。</summary>
+    public void DismissSnack()
+    {
+        _pendingDelete = null;
+        SnackVisible = false;
     }
 
     [RelayCommand]

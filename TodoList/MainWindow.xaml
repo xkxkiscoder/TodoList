@@ -21,103 +21,137 @@
 
         <!--  ═══ 卡片 1：顶部工具栏 ═══  -->
         <Border
+            x:Name="ToolbarHost"
             Grid.Row="0"
             Padding="12,10"
             Style="{StaticResource GlassCardStyle}">
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <!--  品牌  -->
-                <StackPanel
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="10">
-                    <Border
-                        Width="26"
-                        Height="26"
-                        Background="{StaticResource AccentBrush}"
-                        CornerRadius="8">
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontSize="12"
-                            FontWeight="Bold"
-                            Foreground="White"
-                            Text="T" />
-                    </Border>
-                    <TextBlock
+            <Grid>
+                <Grid
+                    x:Name="TitleBarDrag"
+                    Background="Transparent"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch" />
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel
+                        x:Name="BrandPanel"
+                        Grid.Column="0"
                         VerticalAlignment="Center"
-                        FontSize="13"
-                        FontWeight="SemiBold"
-                        Text="TodoList" />
-                </StackPanel>
-
-                <!--  视图切换  -->
-                <StackPanel
-                    Grid.Column="1"
-                    Padding="3"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Background="#2E000000"
-                    CornerRadius="12"
-                    Orientation="Horizontal"
-                    Spacing="2">
-                    <ToggleButton
-                        x:Name="SegAll"
-                        Click="SegAll_Click"
-                        Content="全部"
-                        IsChecked="True"
-                        Style="{StaticResource SegBtnStyle}" />
-                    <ToggleButton
-                        x:Name="SegToday"
-                        Click="SegToday_Click"
-                        Content="今日"
-                        Style="{StaticResource SegBtnStyle}" />
-                    <ToggleButton
-                        x:Name="SegCalendar"
-                        Click="SegCalendar_Click"
-                        Content="日历"
-                        Style="{StaticResource SegBtnStyle}" />
-                </StackPanel>
-
-                <!--  操作  -->
-                <StackPanel
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="6">
-                    <Button
-                        x:Name="NewButton"
-                        Height="34"
-                        Padding="12,0"
-                        VerticalAlignment="Center"
-                        Background="#336B8CFF"
-                        BorderBrush="#476B8CFF"
-                        BorderThickness="1"
-                        Click="NewButton_Click"
-                        CornerRadius="10"
-                        ToolTipService.ToolTip="新建待办 (Ctrl+N)">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon FontSize="13" Glyph="&#xE710;" />
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <Border
+                            Width="26"
+                            Height="26"
+                            Background="{StaticResource AccentBrush}"
+                            CornerRadius="8">
                             <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
                                 FontSize="12"
-                                FontWeight="SemiBold"
-                                Text="新建" />
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        x:Name="SettingsButton"
-                        Click="SettingsButton_Click"
-                        Style="{StaticResource IconBtnStyle}"
-                        ToolTipService.ToolTip="设置">
-                        <FontIcon FontSize="15" Glyph="&#xE713;" />
-                    </Button>
-                </StackPanel>
+                                FontWeight="Bold"
+                                Foreground="White"
+                                Text="T" />
+                        </Border>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Text="TodoList" />
+                    </StackPanel>
+                    <StackPanel
+                        x:Name="SegsPanel"
+                        Grid.Column="1"
+                        Padding="3"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="#2E000000"
+                        CornerRadius="12"
+                        Orientation="Horizontal"
+                        Spacing="2">
+                        <ToggleButton
+                            x:Name="SegAll"
+                            Click="SegAll_Click"
+                            Content="全部"
+                            IsChecked="True"
+                            Style="{StaticResource SegBtnStyle}" />
+                        <ToggleButton
+                            x:Name="SegToday"
+                            Click="SegToday_Click"
+                            Content="今日"
+                            Style="{StaticResource SegBtnStyle}" />
+                        <ToggleButton
+                            x:Name="SegCalendar"
+                            Click="SegCalendar_Click"
+                            Content="日历"
+                            Style="{StaticResource SegBtnStyle}" />
+                    </StackPanel>
+                    <StackPanel
+                        x:Name="ActionsPanel"
+                        Grid.Column="3"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Spacing="4">
+                        <Button
+                            x:Name="NewButton"
+                            Height="34"
+                            Padding="12,0"
+                            VerticalAlignment="Center"
+                            Background="#336B8CFF"
+                            BorderBrush="#476B8CFF"
+                            BorderThickness="1"
+                            Click="NewButton_Click"
+                            CornerRadius="10"
+                            ToolTipService.ToolTip="新建待办 (Ctrl+N)">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon FontSize="13" Glyph="&#xE710;" />
+                                <TextBlock
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Text="新建" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            x:Name="SettingsButton"
+                            Click="SettingsButton_Click"
+                            Style="{StaticResource IconBtnStyle}"
+                            ToolTipService.ToolTip="设置">
+                            <FontIcon FontSize="15" Glyph="&#xE713;" />
+                        </Button>
+                        <Border
+                            Width="1"
+                            Height="18"
+                            Margin="4,0"
+                            Background="{ThemeResource GlassBorderBrush}"
+                            VerticalAlignment="Center" />
+                        <Button
+                            x:Name="MinButton"
+                            Click="MinButton_Click"
+                            Style="{StaticResource IconBtnStyle}"
+                            ToolTipService.ToolTip="最小化">
+                            <FontIcon FontSize="13" Glyph="&#xE921;" />
+                        </Button>
+                        <Button
+                            x:Name="MaxButton"
+                            Click="MaxButton_Click"
+                            Style="{StaticResource IconBtnStyle}"
+                            ToolTipService.ToolTip="最大化 / 还原">
+                            <FontIcon x:Name="MaxIcon" FontSize="13" Glyph="&#xE922;" />
+                        </Button>
+                        <Button
+                            x:Name="CloseButton"
+                            Click="CloseButton_Click"
+                            Style="{StaticResource IconBtnStyle}"
+                            ToolTipService.ToolTip="关闭">
+                            <FontIcon FontSize="13" Glyph="&#xE8BB;" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Border>
 
@@ -197,7 +231,6 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <TextBlock
@@ -228,19 +261,6 @@
                                 MinHeight="30"
                                 PlaceholderText="搜索标题 / 备注"
                                 TextChanged="SearchBox_TextChanged" />
-
-                            <ComboBox
-                                x:Name="StatusFilter"
-                                Grid.Column="4"
-                                Width="110"
-                                MinHeight="30"
-                                SelectedIndex="0"
-                                SelectionChanged="StatusFilter_SelectionChanged">
-                                <ComboBoxItem Content="全部状态" />
-                                <ComboBoxItem Content="未开始" />
-                                <ComboBoxItem Content="进行中" />
-                                <ComboBoxItem Content="已完成" />
-                            </ComboBox>
                         </Grid>
 
                         <!--  列表  -->
@@ -297,13 +317,18 @@
                                         MinHeight="48"
                                         Padding="0,6"
                                         ColumnSpacing="8">
+                                        <Grid.ContextFlyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Command="{x:Bind OpenEditorCommand}" Text="编辑" />
+                                                <MenuFlyoutItem Command="{x:Bind RemoveCommand}" Text="删除" />
+                                            </MenuFlyout>
+                                        </Grid.ContextFlyout>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="28" />
                                             <ColumnDefinition Width="4" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="52" />
-                                            <ColumnDefinition Width="80" />
-                                            <ColumnDefinition Width="64" />
+                                            <ColumnDefinition Width="56" />
+                                            <ColumnDefinition Width="88" />
                                         </Grid.ColumnDefinitions>
 
                                         <!--  左侧状态符号 ○ ● ✓  -->
@@ -380,18 +405,18 @@
                                                 Visibility="{x:Bind NotesVisibility, Mode=OneWay}" />
                                         </Grid>
 
-                                        <!--  状态文字（保留）  -->
+                                        <!--  状态文字  -->
                                         <Button
                                             Grid.Column="3"
                                             Padding="0"
-                                            HorizontalContentAlignment="Center"
+                                            HorizontalContentAlignment="Right"
                                             VerticalContentAlignment="Center"
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Command="{x:Bind ToggleStatusCommand}"
                                             ToolTipService.ToolTip="点击循环：未开始 → 进行中 → 已完成">
                                             <TextBlock
-                                                HorizontalAlignment="Center"
+                                                HorizontalAlignment="Right"
                                                 VerticalAlignment="Center"
                                                 FontSize="11"
                                                 Foreground="{ThemeResource SubtleTextBrush}"
@@ -412,34 +437,10 @@
                                             TextTrimming="CharacterEllipsis"
                                             TextWrapping="NoWrap" />
 
-                                        <!--  操作：定宽  -->
-                                        <StackPanel
-                                            Grid.Column="5"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal"
-                                            Spacing="2">
-                                            <Button
-                                                Width="28"
-                                                Height="28"
-                                                Command="{x:Bind OpenEditorCommand}"
-                                                Style="{StaticResource IconBtnStyle}"
-                                                ToolTipService.ToolTip="编辑">
-                                                <FontIcon FontSize="12" Glyph="&#xE70F;" />
-                                            </Button>
-                                            <Button
-                                                Width="28"
-                                                Height="28"
-                                                Command="{x:Bind RemoveCommand}"
-                                                Style="{StaticResource IconBtnStyle}"
-                                                ToolTipService.ToolTip="删除 (可撤销)">
-                                                <FontIcon FontSize="12" Glyph="&#xE74D;" />
-                                            </Button>
-                                        </StackPanel>
 
                                         <!--  展开三态：Canvas 纯悬浮，不使用椭圆边框  -->
                                         <Canvas
-                                            Grid.ColumnSpan="6"
+                                            Grid.ColumnSpan="5"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Stretch"
                                             Canvas.ZIndex="50"
@@ -807,18 +808,18 @@
             BorderThickness="1"
             Canvas.ZIndex="20"
             CornerRadius="12"
-            Visibility="Collapsed">
+            Visibility="{x:Bind ViewModel.SnackVisibility, Mode=OneWay}">
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <TextBlock
                     x:Name="SnackText"
                     VerticalAlignment="Center"
                     FontSize="12"
                     Foreground="{ThemeResource PrimaryTextBrush}"
-                    Text="已删除" />
+                    Text="{x:Bind ViewModel.SnackText, Mode=OneWay}" />
                 <Button
                     Padding="10,5"
                     Background="#334C6FFF"
-                    Click="Undo_Click"
+                    Command="{x:Bind ViewModel.UndoDeleteCommand, Mode=OneWay}"
                     Content="撤销"
                     CornerRadius="8"
                     Foreground="{ThemeResource AccentBrush}" />

@@ -29,7 +29,6 @@ public sealed partial class MainWindow : Window
     private readonly TodoStore _store = new();
     private readonly StartupService _startup = new();
     private readonly AppSettings _settings = AppSettings.Load();
-    private readonly DispatcherTimer _snackTimer;
 
     private readonly ObservableCollection<TodoItemVm> _allItems = new();
     private readonly ObservableCollection<TodoItemVm> _dayItems = new();
@@ -37,7 +36,6 @@ public sealed partial class MainWindow : Window
     private ViewMode _view = ViewMode.All;
     private DateOnly _selectedDay = DateOnly.FromDateTime(DateTime.Today);
     private DateOnly _visibleMonth = new(DateOnly.FromDateTime(DateTime.Today).Year, DateOnly.FromDateTime(DateTime.Today).Month, 1);
-    private TodoItem? _pendingDelete;
     private bool _suppressSettingsEvents;
     private DispatcherTimer? _statusCollapseTimer;
     private TodoItemVm? _expandedStatusVm;
@@ -47,12 +45,7 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
-        _snackTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-        _snackTimer.Tick += SnackTimer_Tick;
-
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(null);
-
+        SetupCustomTitleBar();
         ApplyWindowSettings();
         RestoreWindowSize();
 
@@ -82,6 +75,148 @@ public sealed partial class MainWindow : Window
 
     // ───────── window chrome ─────────
 
+    private AppWindow GetAppWindow()
+    {
+        var hwnd = WindowNative.GetWindowHandle(this);
+        var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+        return AppWindow.GetFromWindowId(windowId);
+    }
+
+    /// <summary>
+    /// 自定义标题栏：不用 SetTitleBar 全覆盖（会导致还原态按钮点不动），
+    /// 改用拖拽矩形覆盖工具栏空白区，排除右侧窗口按钮。
+    /// </summary>
+    private void SetupCustomTitleBar()
+    {
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(null);
+
+        var titleBar = GetAppWindow().TitleBar;
+        titleBar.ExtendsContentIntoTitleBar = true;
+        titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
+        titleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+        titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(40, 255, 255, 255);
+        titleBar.ButtonForegroundColor = Windows.UI.Color.FromArgb(255, 60, 60, 60);
+        titleBar.ButtonHoverForegroundColor = Windows.UI.Color.FromArgb(255, 20, 20, 20);
+        try
+        {
+            titleBar.PreferredHeightOption = TitleBarHeightOption.Collapsed;
+        }
+        catch
+        {
+            // ignore
+        }
+
+        SizeChanged += (_, _) => DispatcherQueue.TryEnqueue(UpdateDragRegions);
+        AppWindow.Changed += (_, _) => DispatcherQueue.TryEnqueue(UpdateDragRegions);
+        if (Root is not null)
+            Root.Loaded += (_, _) => DispatcherQueue.TryEnqueue(UpdateDragRegions);
+        UpdateDragRegions();
+    }
+
+    /// <summary>工具栏空白区可拖动；右侧按钮区排除在外，保证单击可用。</summary>
+    private void UpdateDragRegions()
+    {
+        if (ToolbarHost is null || ActionsPanel is null || Root is null)
+            return;
+
+        try
+        {
+            double scale = 1.0;
+            try
+            {
+                var hwnd = WindowNative.GetWindowHandle(this);
+                // DPI via GetDpiForWindow if available - fallback 1
+                scale = NativeMethods.GetDpiForWindow(hwnd) / 96.0;
+            }
+            catch
+            {
+                scale = 1.0;
+            }
+
+            var toRoot = ToolbarHost.TransformToVisual(Root);
+            var tb = toRoot.TransformBounds(new Windows.Foundation.Rect(
+                0, 0, ToolbarHost.ActualWidth, ToolbarHost.ActualHeight));
+
+            var actToRoot = ActionsPanel.TransformToVisual(Root);
+            var act = actToRoot.TransformBounds(new Windows.Foundation.Rect(
+                0, 0, ActionsPanel.ActualWidth, ActionsPanel.ActualHeight));
+
+            var segsToRoot = SegsPanel.TransformToVisual(Root);
+            var segs = segsToRoot.TransformBounds(new Windows.Foundation.Rect(
+                0, 0, SegsPanel.ActualWidth, SegsPanel.ActualHeight));
+
+            var winToRoot = Root.TransformToVisual(null);
+            var rootInWin = winToRoot.TransformBounds(new Windows.Foundation.Rect(
+                0, 0, Root.ActualWidth, Root.ActualHeight));
+
+            var tbLeft = rootInWin.X + tb.X;
+            var tbTop = rootInWin.Y + tb.Y;
+            var actLeft = rootInWin.X + act.X;
+            var segsLeft = rootInWin.X + segs.X;
+            var segsRight = rootInWin.X + segs.X + segs.Width;
+
+            var height = tb.Height;
+            var rects = new List<Windows.Graphics.RectInt32>();
+
+            void AddRect(double x1, double x2)
+            {
+                var w = x2 - x1;
+                if (w < 8) return;
+                rects.Add(new Windows.Graphics.RectInt32(
+                    (int)(x1 * scale),
+                    (int)(tbTop * scale),
+                    (int)(w * scale),
+                    (int)(height * scale)));
+            }
+
+            AddRect(tbLeft, segsLeft - 6);
+            AddRect(segsRight + 6, actLeft - 8);
+
+            AppWindow.TitleBar.SetDragRectangles(
+                rects.Count > 0 ? rects.ToArray() : Array.Empty<Windows.Graphics.RectInt32>());
+        }
+        catch
+        {
+            // 忽略变换失败
+        }
+    }
+
+    private void UpdateMaxIcon()
+    {
+        var maximized = AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p
+            && p.State == OverlappedPresenterState.Maximized;
+        if (MaxIcon is not null)
+            MaxIcon.Glyph = maximized ? "" : "";
+    }
+
+    private void MinButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            presenter.Minimize();
+        else
+            Close();
+    }
+
+    private void MaxButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+        {
+            if (presenter.State == OverlappedPresenterState.Maximized)
+                presenter.Restore();
+            else
+                presenter.Maximize();
+
+            UpdateMaxIcon();
+            DispatcherQueue.TryEnqueue(UpdateDragRegions);
+        }
+    }
+
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
     private void ApplyWindowSettings()
     {
         var hwnd = WindowNative.GetWindowHandle(this);
@@ -91,7 +226,6 @@ public sealed partial class MainWindow : Window
         if (_settings.AlwaysOnTop)
         {
             appWindow.SetPresenter(AppWindowPresenterKind.Overlapped);
-            // TopMost via Win32
             SetTopMost(hwnd, true);
         }
 
@@ -124,15 +258,90 @@ public sealed partial class MainWindow : Window
 
     private void RestoreWindowSize()
     {
-        var hwnd = WindowNative.GetWindowHandle(this);
-        var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
-        var appWindow = AppWindow.GetFromWindowId(windowId);
-        if (_settings.WindowWidth > 400 && _settings.WindowHeight > 300)
+        var appWindow = GetAppWindow();
+
+        // 始终以普通（非最大化）窗口启动
+        if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
         {
-            appWindow.Resize(new Windows.Graphics.SizeInt32(
-                (int)_settings.WindowWidth,
-                (int)_settings.WindowHeight));
+            if (presenter.State == OverlappedPresenterState.Maximized
+                || presenter.State == OverlappedPresenterState.Minimized)
+            {
+                presenter.Restore();
+            }
         }
+        else
+        {
+            appWindow.SetPresenter(AppWindowPresenterKind.Overlapped);
+        }
+
+        // 工作区，用于判断是否接近全屏
+        Windows.Graphics.RectInt32 work = default;
+        var hasWork = false;
+        try
+        {
+            work = DisplayArea.GetFromWindowId(appWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+            hasWork = work.Width > 0 && work.Height > 0;
+        }
+        catch
+        {
+            // ignore
+        }
+
+        double width = _settings.WindowWidth;
+        double height = _settings.WindowHeight;
+
+        // 非法或接近全屏的尺寸 → 回落到默认 920×680
+        const double defaultW = 920;
+        const double defaultH = 680;
+        if (double.IsNaN(width) || width < 480)
+            width = defaultW;
+        if (double.IsNaN(height) || height < 360)
+            height = defaultH;
+
+        if (hasWork)
+        {
+            if (width >= work.Width * 0.96)
+                width = Math.Min(defaultW, work.Width * 0.85);
+            if (height >= work.Height * 0.96)
+                height = Math.Min(defaultH, work.Height * 0.85);
+        }
+
+        appWindow.Resize(new Windows.Graphics.SizeInt32(
+            (int)Math.Round(width),
+            (int)Math.Round(height)));
+
+        // 默认停靠右上角（工作区），避免居中/残留旧坐标
+        if (hasWork)
+        {
+            var left = work.X + work.Width - (int)Math.Round(width) - 16;
+            var top = work.Y + 16;
+            if (left < work.X) left = work.X;
+            if (top < work.Y) top = work.Y;
+            try
+            {
+                appWindow.Move(new Windows.Graphics.PointInt32(left, top));
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+        else if (!double.IsNaN(_settings.WindowLeft) && !double.IsNaN(_settings.WindowTop))
+        {
+            try
+            {
+                appWindow.Move(new Windows.Graphics.PointInt32(
+                    (int)_settings.WindowLeft,
+                    (int)_settings.WindowTop));
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        UpdateMaxIcon();
+        DispatcherQueue.TryEnqueue(UpdateDragRegions);
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
@@ -152,11 +361,33 @@ public sealed partial class MainWindow : Window
 
     private void PersistWindowBounds()
     {
-        var hwnd = WindowNative.GetWindowHandle(this);
-        var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
-        var appWindow = AppWindow.GetFromWindowId(windowId);
+        var appWindow = GetAppWindow();
+
+        if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter
+            && presenter.State == OverlappedPresenterState.Maximized)
+        {
+            // 最大化时不写入尺寸，避免下次按最大化尺寸启动
+            return;
+        }
+
         var pos = appWindow.Position;
         var size = appWindow.Size;
+
+        try
+        {
+            var work = DisplayArea.GetFromWindowId(appWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+            // 接近全屏不写入，避免下次“默认全屏”
+            if (work.Width > 0 && work.Height > 0
+                && (size.Width >= work.Width * 0.96 || size.Height >= work.Height * 0.96))
+            {
+                return;
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+
         _settings.WindowLeft = pos.X;
         _settings.WindowTop = pos.Y;
         _settings.WindowWidth = size.Width;
@@ -197,7 +428,7 @@ public sealed partial class MainWindow : Window
         else if (e.Key == VirtualKey.Escape)
         {
             CloseSettings();
-            HideSnack();
+            ViewModel.DismissSnack();
             e.Handled = true;
         }
     }
@@ -298,16 +529,7 @@ public sealed partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private TodoStatus? ReadStatusFilter()
-    {
-        return StatusFilter.SelectedIndex switch
-        {
-            1 => TodoStatus.NotStarted,
-            2 => TodoStatus.InProgress,
-            3 => TodoStatus.Completed,
-            _ => null
-        };
-    }
+    private TodoStatus? ReadStatusFilter() => null;
 
     private void RefreshCalendar()
     {
@@ -325,7 +547,11 @@ public sealed partial class MainWindow : Window
         CalendarGrid.ColumnDefinitions.Clear();
 
         for (var r = 0; r < 6; r++)
-            CalendarGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            CalendarGrid.RowDefinitions.Add(new RowDefinition
+            {
+                Height = new GridLength(1, GridUnitType.Star),
+                MinHeight = 40
+            });
         for (var c = 0; c < 7; c++)
             CalendarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
@@ -366,12 +592,14 @@ public sealed partial class MainWindow : Window
                 Tag = date,
                 MinHeight = 36,
                 Margin = new Thickness(2),
+                Padding = new Thickness(0),
                 CornerRadius = new CornerRadius(9),
                 Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
                 BorderThickness = new Thickness(1),
                 BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
+                VerticalContentAlignment = VerticalAlignment.Center,
                 Content = BuildDayContent(day, date, today, dateCounts, isOther)
             };
             if (isOther)
@@ -555,47 +783,6 @@ public sealed partial class MainWindow : Window
         Refresh();
     }
 
-    private void DeleteItem_Click(object sender, RoutedEventArgs e)
-    {
-        if ((sender as FrameworkElement)?.DataContext is not TodoItemVm vm)
-            return;
-        DeleteWithUndo(vm.Source);
-    }
-
-    private void DeleteWithUndo(TodoItem item)
-    {
-        _store.Remove(item.Id, out _);
-        _pendingDelete = item;
-        SnackText.Text = $"已删除「{item.Title}」";
-        Snack.Visibility = Visibility.Visible;
-        _snackTimer.Stop();
-        _snackTimer.Start();
-        Refresh();
-    }
-
-    private void Undo_Click(object sender, RoutedEventArgs e)
-    {
-        if (_pendingDelete is not null)
-        {
-            _store.Restore(_pendingDelete);
-            _pendingDelete = null;
-        }
-        HideSnack();
-        Refresh();
-    }
-
-    private void SnackTimer_Tick(object? sender, object e)
-    {
-        _pendingDelete = null;
-        HideSnack();
-    }
-
-    private void HideSnack()
-    {
-        _snackTimer.Stop();
-        Snack.Visibility = Visibility.Collapsed;
-    }
-
     private static int StatusRank(TodoStatus status) => status switch
     {
         TodoStatus.NotStarted => 0,
@@ -693,12 +880,7 @@ public sealed partial class MainWindow : Window
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        if (_view != ViewMode.Calendar)
-            Refresh();
-    }
-
-    private void StatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
+        ViewModel.SearchText = sender.Text ?? string.Empty;
         if (_view != ViewMode.Calendar)
             Refresh();
     }
@@ -783,4 +965,7 @@ internal static class NativeMethods
         int cx,
         int cy,
         uint uFlags);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    public static extern uint GetDpiForWindow(IntPtr hwnd);
 }
