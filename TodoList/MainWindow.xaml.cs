@@ -36,6 +36,8 @@ public sealed partial class MainWindow : Window
     private DateOnly _visibleMonth = new(DateOnly.FromDateTime(DateTime.Today).Year, DateOnly.FromDateTime(DateTime.Today).Month, 1);
     private TodoItem? _pendingDelete;
     private bool _suppressSettingsEvents;
+    private DispatcherTimer? _statusCollapseTimer;
+    private TodoItemVm? _expandedStatusVm;
 
     public MainWindow()
     {
@@ -546,6 +548,71 @@ public sealed partial class MainWindow : Window
         vm.RefreshAll();
 
         // 只更新计数与可能隐藏的项，避免整表重建抖动
+        UpdateCounts();
+
+        if (_view != ViewMode.Calendar
+            && _settings.HideCompleted
+            && vm.Status == TodoStatus.Completed)
+        {
+            _allItems.Remove(vm);
+            UpdateEmptyState();
+        }
+    }
+
+    private void StatusChip_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not TodoItemVm vm)
+            return;
+
+        _statusCollapseTimer?.Stop();
+
+        // 同时只展开一条，切到新行时立刻收起上一条
+        if (_expandedStatusVm is not null && !ReferenceEquals(_expandedStatusVm, vm))
+            _expandedStatusVm.StatusExpanded = false;
+
+        _expandedStatusVm = vm;
+        vm.StatusExpanded = true;
+    }
+
+    private void StatusChip_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not TodoItemVm vm)
+            return;
+        if (!ReferenceEquals(_expandedStatusVm, vm))
+            return;
+
+        _statusCollapseTimer?.Stop();
+        _statusCollapseTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(160) };
+        var target = vm;
+        _statusCollapseTimer.Tick += (_, _) =>
+        {
+            _statusCollapseTimer?.Stop();
+            if (ReferenceEquals(_expandedStatusVm, target))
+            {
+                target.StatusExpanded = false;
+                _expandedStatusVm = null;
+            }
+        };
+        _statusCollapseTimer.Start();
+    }
+
+    private void StatusOption_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe || fe.DataContext is not TodoItemVm vm)
+            return;
+        if (fe.Tag is not string tag)
+            return;
+
+        vm.Status = tag switch
+        {
+            "InProgress" => TodoStatus.InProgress,
+            "Completed" => TodoStatus.Completed,
+            _ => TodoStatus.NotStarted
+        };
+        vm.StatusExpanded = false;
+        _expandedStatusVm = null;
+        _store.Update(vm.Source);
+        vm.RefreshAll();
         UpdateCounts();
 
         if (_view != ViewMode.Calendar

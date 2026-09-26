@@ -19,6 +19,8 @@
                     <SolidColorBrush x:Key="ScrimBrush" Color="#99000000" />
                     <SolidColorBrush x:Key="DialogCardBrush" Color="#F01C2438" />
                     <SolidColorBrush x:Key="CardStrokeBrush" Color="#22FFFFFF" />
+                    <SolidColorBrush x:Key="SolidCardBrush" Color="#FF1C2438" />
+                    <SolidColorBrush x:Key="SolidChipBrush" Color="#FF2A3348" />
                 </ResourceDictionary>
                 <!-- 浅色 -->
                 <ResourceDictionary x:Key="Light">
@@ -29,6 +31,8 @@
                     <SolidColorBrush x:Key="ScrimBrush" Color="#66000000" />
                     <SolidColorBrush x:Key="DialogCardBrush" Color="#F5FFFFFF" />
                     <SolidColorBrush x:Key="CardStrokeBrush" Color="#1A000000" />
+                    <SolidColorBrush x:Key="SolidCardBrush" Color="#FFFFFFFF" />
+                    <SolidColorBrush x:Key="SolidChipBrush" Color="#FFEEF0F4" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 

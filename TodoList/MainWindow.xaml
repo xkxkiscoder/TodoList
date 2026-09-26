@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Window
     x:Class="TodoList.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -10,14 +10,20 @@
         <MicaBackdrop Kind="BaseAlt" />
     </Window.SystemBackdrop>
 
-    <Grid x:Name="Root" Padding="14" RowSpacing="12">
+    <Grid
+        x:Name="Root"
+        Padding="14"
+        RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- ═══ 卡片 1：顶部工具栏 ═══ -->
-        <Border Grid.Row="0" Style="{StaticResource GlassCardStyle}" Padding="12,10">
+        <!--  ═══ 卡片 1：顶部工具栏 ═══  -->
+        <Border
+            Grid.Row="0"
+            Padding="12,10"
+            Style="{StaticResource GlassCardStyle}">
             <Grid ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -25,75 +31,108 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- 品牌 -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Border Width="26" Height="26" CornerRadius="8" Background="{StaticResource AccentBrush}">
-                        <TextBlock Text="T"
-                                   FontSize="12"
-                                   FontWeight="Bold"
-                                   Foreground="White"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Text="TodoList"
-                               FontSize="13"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-
-                <!-- 视图切换 -->
-                <StackPanel Grid.Column="1"
-                            Orientation="Horizontal"
-                            Spacing="2"
+                <!--  品牌  -->
+                <StackPanel
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="10">
+                    <Border
+                        Width="26"
+                        Height="26"
+                        Background="{StaticResource AccentBrush}"
+                        CornerRadius="8">
+                        <TextBlock
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Background="#2E000000"
-                            CornerRadius="12"
-                            Padding="3">
-                    <ToggleButton x:Name="SegAll" Style="{StaticResource SegBtnStyle}"
-                                  IsChecked="True" Content="全部" Click="SegAll_Click" />
-                    <ToggleButton x:Name="SegToday" Style="{StaticResource SegBtnStyle}"
-                                  Content="今日" Click="SegToday_Click" />
-                    <ToggleButton x:Name="SegCalendar" Style="{StaticResource SegBtnStyle}"
-                                  Content="日历" Click="SegCalendar_Click" />
+                            FontSize="12"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Text="T" />
+                    </Border>
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Text="TodoList" />
                 </StackPanel>
 
-                <!-- 操作 -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <Button x:Name="NewButton"
-                            Click="NewButton_Click"
-                            Background="#336B8CFF"
-                            BorderBrush="#476B8CFF"
-                            BorderThickness="1"
-                            CornerRadius="10"
-                            Padding="12,0"
-                            Height="34"
-                            VerticalAlignment="Center"
-                            ToolTipService.ToolTip="新建待办 (Ctrl+N)">
+                <!--  视图切换  -->
+                <StackPanel
+                    Grid.Column="1"
+                    Padding="3"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="#2E000000"
+                    CornerRadius="12"
+                    Orientation="Horizontal"
+                    Spacing="2">
+                    <ToggleButton
+                        x:Name="SegAll"
+                        Click="SegAll_Click"
+                        Content="全部"
+                        IsChecked="True"
+                        Style="{StaticResource SegBtnStyle}" />
+                    <ToggleButton
+                        x:Name="SegToday"
+                        Click="SegToday_Click"
+                        Content="今日"
+                        Style="{StaticResource SegBtnStyle}" />
+                    <ToggleButton
+                        x:Name="SegCalendar"
+                        Click="SegCalendar_Click"
+                        Content="日历"
+                        Style="{StaticResource SegBtnStyle}" />
+                </StackPanel>
+
+                <!--  操作  -->
+                <StackPanel
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="6">
+                    <Button
+                        x:Name="NewButton"
+                        Height="34"
+                        Padding="12,0"
+                        VerticalAlignment="Center"
+                        Background="#336B8CFF"
+                        BorderBrush="#476B8CFF"
+                        BorderThickness="1"
+                        Click="NewButton_Click"
+                        CornerRadius="10"
+                        ToolTipService.ToolTip="新建待办 (Ctrl+N)">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE710;" FontSize="13" />
-                            <TextBlock Text="新建" FontSize="12" FontWeight="SemiBold" />
+                            <FontIcon FontSize="13" Glyph="&#xE710;" />
+                            <TextBlock
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Text="新建" />
                         </StackPanel>
                     </Button>
-                    <Button x:Name="SettingsButton"
-                            Style="{StaticResource IconBtnStyle}"
-                            Click="SettingsButton_Click"
-                            ToolTipService.ToolTip="设置">
-                        <FontIcon Glyph="&#xE713;" FontSize="15" />
+                    <Button
+                        x:Name="SettingsButton"
+                        Click="SettingsButton_Click"
+                        Style="{StaticResource IconBtnStyle}"
+                        ToolTipService.ToolTip="设置">
+                        <FontIcon FontSize="15" Glyph="&#xE713;" />
                     </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ═══ 卡片 2：内容区 ═══ -->
-        <Border Grid.Row="1" Style="{StaticResource GlassCardStyle}" Padding="14">
+        <!--  ═══ 卡片 2：内容区 ═══  -->
+        <Border
+            Grid.Row="1"
+            Padding="14"
+            Style="{StaticResource GlassCardStyle}">
             <Grid RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- 快速添加 -->
+                <!--  快速添加  -->
                 <Grid Grid.Row="0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -102,50 +141,57 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <AutoSuggestBox x:Name="QuickTitle"
-                                    Grid.Column="0"
-                                    MinHeight="38"
-                                    PlaceholderText="添加待办，回车确认…"
-                                    QuerySubmitted="QuickTitle_QuerySubmitted"
-                                    TextChanged="QuickTitle_TextChanged" />
+                    <AutoSuggestBox
+                        x:Name="QuickTitle"
+                        Grid.Column="0"
+                        MinHeight="38"
+                        PlaceholderText="添加待办，回车确认…"
+                        QuerySubmitted="QuickTitle_QuerySubmitted"
+                        TextChanged="QuickTitle_TextChanged" />
 
-                    <ComboBox x:Name="QuickPriority"
-                              Grid.Column="1"
-                              MinHeight="38"
-                              VerticalAlignment="Stretch"
-                              SelectedIndex="1">
+                    <ComboBox
+                        x:Name="QuickPriority"
+                        Grid.Column="1"
+                        MinHeight="38"
+                        VerticalAlignment="Stretch"
+                        SelectedIndex="1">
                         <ComboBoxItem Content="低" Tag="Low" />
                         <ComboBoxItem Content="中" Tag="Medium" />
                         <ComboBoxItem Content="高" Tag="High" />
                         <ComboBoxItem Content="紧急" Tag="Critical" />
                     </ComboBox>
 
-                    <CalendarDatePicker x:Name="QuickDate"
-                                        Grid.Column="2"
-                                        MinHeight="38"
-                                        PlaceholderText="计划日 可选" />
+                    <CalendarDatePicker
+                        x:Name="QuickDate"
+                        Grid.Column="2"
+                        MinHeight="38"
+                        PlaceholderText="计划日 可选" />
 
-                    <Button x:Name="QuickAddButton"
-                            Grid.Column="3"
-                            MinHeight="38"
-                            Padding="16,0"
-                            Background="{StaticResource AccentBrush}"
-                            CornerRadius="10"
-                            Content="添加"
-                            Click="QuickAddButton_Click" />
+                    <Button
+                        x:Name="QuickAddButton"
+                        Grid.Column="3"
+                        MinHeight="38"
+                        Padding="16,0"
+                        Background="{StaticResource AccentBrush}"
+                        Click="QuickAddButton_Click"
+                        Content="添加"
+                        CornerRadius="10" />
                 </Grid>
 
-                <!-- 主内容 -->
+                <!--  主内容  -->
                 <Grid Grid.Row="1">
-                    <!-- 全部 / 今日 -->
+                    <!--  全部 / 今日  -->
                     <Grid x:Name="ListPanel">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <!-- 列表头 -->
-                        <Grid Grid.Row="0" ColumnSpacing="10" Margin="2,0,2,10">
+                        <!--  列表头  -->
+                        <Grid
+                            Grid.Row="0"
+                            Margin="2,0,2,10"
+                            ColumnSpacing="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -154,37 +200,42 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0"
-                                       x:Name="ListTitle"
-                                       Text="全部待办"
-                                       FontSize="14"
-                                       FontWeight="SemiBold"
-                                       VerticalAlignment="Center" />
+                            <TextBlock
+                                x:Name="ListTitle"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Text="全部待办" />
 
-                            <Border Grid.Column="1"
-                                    Background="#12FFFFFF"
-                                    CornerRadius="999"
-                                    Padding="8,2"
-                                    VerticalAlignment="Center">
-                                <TextBlock x:Name="ListCount"
-                                           Text="0"
-                                           FontSize="11"
-                                           Foreground="{ThemeResource SubtleTextBrush}" />
+                            <Border
+                                Grid.Column="1"
+                                Padding="8,2"
+                                VerticalAlignment="Center"
+                                Background="#12FFFFFF"
+                                CornerRadius="999">
+                                <TextBlock
+                                    x:Name="ListCount"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SubtleTextBrush}"
+                                    Text="0" />
                             </Border>
 
-                            <AutoSuggestBox x:Name="SearchBox"
-                                            Grid.Column="3"
-                                            Width="180"
-                                            MinHeight="30"
-                                            PlaceholderText="搜索标题 / 备注"
-                                            TextChanged="SearchBox_TextChanged" />
+                            <AutoSuggestBox
+                                x:Name="SearchBox"
+                                Grid.Column="3"
+                                Width="180"
+                                MinHeight="30"
+                                PlaceholderText="搜索标题 / 备注"
+                                TextChanged="SearchBox_TextChanged" />
 
-                            <ComboBox x:Name="StatusFilter"
-                                      Grid.Column="4"
-                                      Width="110"
-                                      MinHeight="30"
-                                      SelectedIndex="0"
-                                      SelectionChanged="StatusFilter_SelectionChanged">
+                            <ComboBox
+                                x:Name="StatusFilter"
+                                Grid.Column="4"
+                                Width="110"
+                                MinHeight="30"
+                                SelectedIndex="0"
+                                SelectionChanged="StatusFilter_SelectionChanged">
                                 <ComboBoxItem Content="全部状态" />
                                 <ComboBoxItem Content="未开始" />
                                 <ComboBoxItem Content="进行中" />
@@ -192,22 +243,35 @@
                             </ComboBox>
                         </Grid>
 
-                        <!-- 列表 -->
-                        <ListView x:Name="MainListView"
-                                  Grid.Row="1"
-                                  SelectionMode="None"
-                                  IsItemClickEnabled="False"
-                                  CanReorderItems="True"
-                                  AllowDrop="True"
-                                  ReorderMode="Enabled"
-                                  HorizontalAlignment="Stretch"
-                                  ScrollViewer.HorizontalScrollMode="Disabled"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                  DragItemsCompleted="MainListView_DragItemsCompleted">
+                        <!--  列表  -->
+                        <ListView
+                            x:Name="MainListView"
+                            Grid.Row="1"
+                            HorizontalAlignment="Stretch"
+                            AllowDrop="True"
+                            CanReorderItems="True"
+                            DragItemsCompleted="MainListView_DragItemsCompleted"
+                            IsItemClickEnabled="False"
+                            ReorderMode="Enabled"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollViewer.HorizontalScrollMode="Disabled"
+                            SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="MinHeight" Value="0" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="vm:TodoItemVm">
-                                    <Grid ColumnSpacing="8" Padding="8,10" MinHeight="48">
+                                    <Grid
+                                        MinHeight="48"
+                                        Padding="0,6"
+                                        ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="28" />
                                             <ColumnDefinition Width="4" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="52" />
@@ -215,338 +279,527 @@
                                             <ColumnDefinition Width="64" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- 左侧色条 = 重要程度 -->
-                                        <Border Grid.Column="0"
-                                                Width="4"
-                                                Height="32"
-                                                CornerRadius="2"
+                                        <!--  左侧状态符号 ○ ● ✓  -->
+                                        <Grid
+                                            Grid.Column="0"
+                                            Height="36"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Center"
+                                            PointerEntered="StatusChip_PointerEntered"
+                                            PointerExited="StatusChip_PointerExited">
+                                            <Button
+                                                Padding="0"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
-                                                Background="{x:Bind PriorityBrush, Mode=OneWay}" />
+                                                Click="StatusPill_Click"
+                                                Visibility="{x:Bind StatusChipVis, Mode=OneWay}"
+                                                ToolTipService.ToolTip="点击循环状态；悬停可选择">
+                                                <TextBlock
+                                                    Text="{x:Bind StatusGlyph, Mode=OneWay}"
+                                                    FontSize="15"
+                                                    Foreground="{x:Bind StatusDotBrush, Mode=OneWay}"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center" />
+                                            </Button>
+                                        </Grid>
 
-                                        <!-- 标题 / 备注：超长省略 -->
-                                        <Grid Grid.Column="1" RowSpacing="2" VerticalAlignment="Center">
+                                        <!--  重要程度色条  -->
+                                        <Border
+                                            Grid.Column="1"
+                                            Width="4"
+                                            Height="32"
+                                            VerticalAlignment="Center"
+                                            Background="{x:Bind PriorityBrush, Mode=OneWay}"
+                                            CornerRadius="2" />
+
+                                        <!--  标题 / 备注  -->
+                                        <Grid
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            RowSpacing="2">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
 
-                                            <!-- 标题 + 已完成中划线 -->
                                             <Grid Grid.Row="0">
-                                                <TextBlock Text="{x:Bind Title, Mode=OneWay}"
-                                                           FontSize="13"
-                                                           Foreground="{x:Bind TitleBrush, Mode=OneWay}"
-                                                           TextWrapping="NoWrap"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           HorizontalAlignment="Stretch"
-                                                           VerticalAlignment="Center" />
-                                                <Border Height="1"
-                                                        Margin="0,1"
-                                                        VerticalAlignment="Center"
-                                                        HorizontalAlignment="Stretch"
-                                                        Background="{x:Bind TitleBrush, Mode=OneWay}"
-                                                        Visibility="{x:Bind StrikeVisibility, Mode=OneWay}" />
+                                                <TextBlock
+                                                    HorizontalAlignment="Stretch"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="13"
+                                                    Foreground="{x:Bind TitleBrush, Mode=OneWay}"
+                                                    Text="{x:Bind Title, Mode=OneWay}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    TextWrapping="NoWrap" />
+                                                <Border
+                                                    Height="1"
+                                                    Margin="0,1"
+                                                    HorizontalAlignment="Stretch"
+                                                    VerticalAlignment="Center"
+                                                    Background="{x:Bind TitleBrush, Mode=OneWay}"
+                                                    Visibility="{x:Bind StrikeVisibility, Mode=OneWay}" />
                                             </Grid>
 
-                                            <TextBlock Grid.Row="1"
-                                                       Text="{x:Bind Notes, Mode=OneWay}"
-                                                       FontSize="11"
-                                                       Foreground="{ThemeResource SubtleTextBrush}"
-                                                       Visibility="{x:Bind NotesVisibility, Mode=OneWay}"
-                                                       TextWrapping="NoWrap"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       HorizontalAlignment="Stretch" />
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                HorizontalAlignment="Stretch"
+                                                FontSize="11"
+                                                Foreground="{ThemeResource SubtleTextBrush}"
+                                                Text="{x:Bind Notes, Mode=OneWay}"
+                                                TextTrimming="CharacterEllipsis"
+                                                TextWrapping="NoWrap"
+                                                Visibility="{x:Bind NotesVisibility, Mode=OneWay}" />
                                         </Grid>
 
-                                        <!-- 状态：灰字，可点循环 -->
-                                        <Button Grid.Column="2"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Padding="0"
-                                                HorizontalContentAlignment="Stretch"
-                                                VerticalContentAlignment="Center"
-                                                Click="StatusPill_Click"
-                                                ToolTipService.ToolTip="点击循环：未开始 → 进行中 → 已完成">
-                                            <TextBlock Text="{x:Bind StatusDisplay, Mode=OneWay}"
-                                                       FontSize="11"
-                                                       Foreground="{ThemeResource SubtleTextBrush}"
-                                                       TextWrapping="NoWrap"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       HorizontalAlignment="Stretch"
-                                                       VerticalAlignment="Center" />
+                                        <!--  状态文字（保留）  -->
+                                        <Button
+                                            Grid.Column="3"
+                                            Padding="0"
+                                            HorizontalContentAlignment="Center"
+                                            VerticalContentAlignment="Center"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Click="StatusPill_Click"
+                                            ToolTipService.ToolTip="点击循环：未开始 → 进行中 → 已完成">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="11"
+                                                Foreground="{ThemeResource SubtleTextBrush}"
+                                                Text="{x:Bind StatusDisplay, Mode=OneWay}"
+                                                TextWrapping="NoWrap" />
                                         </Button>
 
-                                        <!-- 计划日：定宽 -->
-                                        <TextBlock Grid.Column="3"
-                                                   Text="{x:Bind PlannedDateDisplay, Mode=OneWay}"
-                                                   FontSize="11"
-                                                   Foreground="{x:Bind PlannedDateBrush, Mode=OneWay}"
-                                                   TextWrapping="NoWrap"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   TextAlignment="Right"
-                                                   HorizontalAlignment="Stretch"
-                                                   VerticalAlignment="Center"
-                                                   Margin="4,0" />
+                                        <!--  计划日：定宽  -->
+                                        <TextBlock
+                                            Grid.Column="4"
+                                            Margin="4,0"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Center"
+                                            FontSize="11"
+                                            Foreground="{x:Bind PlannedDateBrush, Mode=OneWay}"
+                                            Text="{x:Bind PlannedDateDisplay, Mode=OneWay}"
+                                            TextAlignment="Right"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap" />
 
-                                        <!-- 操作：定宽 -->
-                                        <StackPanel Grid.Column="4"
-                                                    Orientation="Horizontal"
-                                                    Spacing="2"
-                                                    HorizontalAlignment="Right"
-                                                    VerticalAlignment="Center">
-                                            <Button Style="{StaticResource IconBtnStyle}"
-                                                    Width="28" Height="28"
-                                                    Click="EditItem_Click"
-                                                    ToolTipService.ToolTip="编辑">
-                                                <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                                        <!--  操作：定宽  -->
+                                        <StackPanel
+                                            Grid.Column="5"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            Spacing="2">
+                                            <Button
+                                                Width="28"
+                                                Height="28"
+                                                Click="EditItem_Click"
+                                                Style="{StaticResource IconBtnStyle}"
+                                                ToolTipService.ToolTip="编辑">
+                                                <FontIcon FontSize="12" Glyph="&#xE70F;" />
                                             </Button>
-                                            <Button Style="{StaticResource IconBtnStyle}"
-                                                    Width="28" Height="28"
-                                                    Click="DeleteItem_Click"
-                                                    ToolTipService.ToolTip="删除 (可撤销)">
-                                                <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                            <Button
+                                                Width="28"
+                                                Height="28"
+                                                Click="DeleteItem_Click"
+                                                Style="{StaticResource IconBtnStyle}"
+                                                ToolTipService.ToolTip="删除 (可撤销)">
+                                                <FontIcon FontSize="12" Glyph="&#xE74D;" />
                                             </Button>
                                         </StackPanel>
+
+                                        <!--  展开三态：Canvas 纯悬浮，不使用椭圆边框  -->
+                                        <Canvas
+                                            Grid.ColumnSpan="6"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Stretch"
+                                            Canvas.ZIndex="50"
+                                            PointerEntered="StatusChip_PointerEntered"
+                                            PointerExited="StatusChip_PointerExited"
+                                            Visibility="{x:Bind StatusOptionsVis, Mode=OneWay}">
+                                            <StackPanel
+                                                Canvas.Left="0"
+                                                Canvas.Top="4"
+                                                Orientation="Horizontal"
+                                                Spacing="4"
+                                                Background="{ThemeResource SolidCardBrush}"
+                                                CornerRadius="10"
+                                                Padding="4,2">
+                                                <Button
+                                                    Width="28"
+                                                    Height="28"
+                                                    Padding="0"
+                                                    Background="{ThemeResource SolidChipBrush}"
+                                                    BorderThickness="0"
+                                                    CornerRadius="8"
+                                                    Click="StatusOption_Click"
+                                                    Tag="NotStarted"
+                                                    ToolTipService.ToolTip="未开始">
+                                                    <TextBlock
+                                                        Text="○"
+                                                        FontSize="15"
+                                                        Foreground="{x:Bind NotStartedDotBrush, Mode=OneWay}"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center" />
+                                                </Button>
+                                                <Button
+                                                    Width="28"
+                                                    Height="28"
+                                                    Padding="0"
+                                                    Background="{ThemeResource SolidChipBrush}"
+                                                    BorderThickness="0"
+                                                    CornerRadius="8"
+                                                    Click="StatusOption_Click"
+                                                    Tag="InProgress"
+                                                    ToolTipService.ToolTip="进行中">
+                                                    <TextBlock
+                                                        Text="●"
+                                                        FontSize="15"
+                                                        Foreground="{x:Bind InProgressDotBrush, Mode=OneWay}"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center" />
+                                                </Button>
+                                                <Button
+                                                    Width="28"
+                                                    Height="28"
+                                                    Padding="0"
+                                                    Background="{ThemeResource SolidChipBrush}"
+                                                    BorderThickness="0"
+                                                    CornerRadius="8"
+                                                    Click="StatusOption_Click"
+                                                    Tag="Completed"
+                                                    ToolTipService.ToolTip="已完成">
+                                                    <TextBlock
+                                                        Text="✓"
+                                                        FontSize="15"
+                                                        Foreground="{x:Bind CompletedDotBrush, Mode=OneWay}"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Canvas>
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
 
-                        <!-- 空态 -->
-                        <StackPanel x:Name="EmptyPanel"
-                                    Grid.Row="1"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Spacing="8"
-                                    Visibility="Collapsed">
-                            <TextBlock Text="○"
-                                       FontSize="28"
-                                       Opacity="0.5"
-                                       HorizontalAlignment="Center"
-                                       Foreground="{ThemeResource SubtleTextBrush}" />
-                            <TextBlock Text="暂无待办 · 在上方添加"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource SubtleTextBrush}"
-                                       HorizontalAlignment="Center" />
+                        <!--  空态  -->
+                        <StackPanel
+                            x:Name="EmptyPanel"
+                            Grid.Row="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="8"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="28"
+                                Foreground="{ThemeResource SubtleTextBrush}"
+                                Opacity="0.5"
+                                Text="○" />
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="12"
+                                Foreground="{ThemeResource SubtleTextBrush}"
+                                Text="暂无待办 · 在上方添加" />
                         </StackPanel>
                     </Grid>
 
-                    <!-- 日历 -->
-                    <Grid x:Name="CalendarPanel" Visibility="Collapsed" ColumnSpacing="12">
+                    <!--  日历  -->
+                    <Grid
+                        x:Name="CalendarPanel"
+                        ColumnSpacing="12"
+                        Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="240" />
                         </Grid.ColumnDefinitions>
 
-                            <!-- 月历 -->
-                            <Border Grid.Column="0"
-                                    Background="#0AFFFFFF"
-                                    BorderBrush="{StaticResource GlassBorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="14"
-                                    Padding="12">
-                                <Grid RowSpacing="8">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
+                        <!--  月历  -->
+                        <Border
+                            Grid.Column="0"
+                            Padding="12"
+                            Background="#0AFFFFFF"
+                            BorderBrush="{StaticResource GlassBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="14">
+                            <Grid RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
 
-                                    <Grid Grid.Row="0" ColumnSpacing="8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <Button Grid.Column="0" Style="{StaticResource IconBtnStyle}" Width="28" Height="28" Click="PrevMonth_Click" Content="‹" />
-                                        <TextBlock Grid.Column="1"
-                                                   x:Name="MonthTitle"
-                                                   Text="2026年1月"
-                                                   FontSize="13"
-                                                   FontWeight="SemiBold"
-                                                   VerticalAlignment="Center"
-                                                   MinWidth="88"
-                                                   TextAlignment="Center" />
-                                        <Button Grid.Column="2" Style="{StaticResource IconBtnStyle}" Width="28" Height="28" Click="NextMonth_Click" Content="›" />
-                                        <Button Grid.Column="4"
-                                                Style="{StaticResource IconBtnStyle}"
-                                                Width="Auto" Padding="10,0"
-                                                Click="GoToday_Click"
-                                                Content="今天" />
-                                    </Grid>
-
-                                    <!-- 星期头 -->
-                                    <Grid Grid.Row="1" ColumnSpacing="5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="一" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="二" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="三" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" />
-                                        <TextBlock Grid.Column="3" Text="四" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" />
-                                        <TextBlock Grid.Column="4" Text="五" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" />
-                                        <TextBlock Grid.Column="5" Text="六" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" />
-                                        <TextBlock Grid.Column="6" Text="日" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" />
-                                    </Grid>
-
-                                    <Grid x:Name="CalendarGrid" Grid.Row="2" ColumnSpacing="5" RowSpacing="5">
-                                        <!-- 代码生成 6x7 日格 -->
-                                    </Grid>
+                                <Grid Grid.Row="0" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button
+                                        Grid.Column="0"
+                                        Width="28"
+                                        Height="28"
+                                        Click="PrevMonth_Click"
+                                        Content="‹"
+                                        Style="{StaticResource IconBtnStyle}" />
+                                    <TextBlock
+                                        x:Name="MonthTitle"
+                                        Grid.Column="1"
+                                        MinWidth="88"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Text="2026年1月"
+                                        TextAlignment="Center" />
+                                    <Button
+                                        Grid.Column="2"
+                                        Width="28"
+                                        Height="28"
+                                        Click="NextMonth_Click"
+                                        Content="›"
+                                        Style="{StaticResource IconBtnStyle}" />
+                                    <Button
+                                        Grid.Column="4"
+                                        Width="Auto"
+                                        Padding="10,0"
+                                        Click="GoToday_Click"
+                                        Content="今天"
+                                        Style="{StaticResource IconBtnStyle}" />
                                 </Grid>
-                            </Border>
 
-                            <!-- 当日计划 -->
-                            <Border Grid.Column="1"
-                                    Background="#0AFFFFFF"
-                                    BorderBrush="{StaticResource GlassBorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="14"
-                                    Padding="12">
-                                <Grid RowSpacing="10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
+                                <!--  星期头  -->
+                                <Grid Grid.Row="1" ColumnSpacing="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                        Text="一" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                        Text="二" />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                        Text="三" />
+                                    <TextBlock
+                                        Grid.Column="3"
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                        Text="四" />
+                                    <TextBlock
+                                        Grid.Column="4"
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                        Text="五" />
+                                    <TextBlock
+                                        Grid.Column="5"
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                        Text="六" />
+                                    <TextBlock
+                                        Grid.Column="6"
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                        Text="日" />
+                                </Grid>
 
-                                    <TextBlock Grid.Row="0"
-                                               x:Name="DayTitle"
-                                               Text="1月15日"
-                                               FontSize="13"
-                                               FontWeight="SemiBold" />
-                                    <TextBlock Grid.Row="1"
-                                               Text="当日计划"
-                                               FontSize="11"
-                                               Foreground="{ThemeResource SubtleTextBrush}" />
+                                <Grid
+                                    x:Name="CalendarGrid"
+                                    Grid.Row="2"
+                                    ColumnSpacing="5"
+                                    RowSpacing="5">
+                                    <!--  代码生成 6x7 日格  -->
+                                </Grid>
+                            </Grid>
+                        </Border>
 
-                                    <ListView x:Name="DayList"
-                                              Grid.Row="2"
-                                              SelectionMode="None"
-                                              ScrollViewer.HorizontalScrollMode="Disabled">
-                                        <ListView.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:TodoItemVm">
-                                                <Grid ColumnSpacing="8" Padding="2,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="4" />
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="52" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <Border Width="4" Height="18" CornerRadius="2"
-                                                            VerticalAlignment="Center"
-                                                            Background="{x:Bind PriorityBrush, Mode=OneWay}" />
-                                                    <Grid Grid.Column="1">
-                                                        <TextBlock Text="{x:Bind Title, Mode=OneWay}"
-                                                                   FontSize="12"
-                                                                   TextWrapping="NoWrap"
-                                                                   TextTrimming="CharacterEllipsis"
-                                                                   Foreground="{x:Bind TitleBrush, Mode=OneWay}"
-                                                                   HorizontalAlignment="Stretch"
-                                                                   VerticalAlignment="Center" />
-                                                        <Border Height="1"
-                                                                Margin="0,1"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalAlignment="Stretch"
-                                                                Background="{x:Bind TitleBrush, Mode=OneWay}"
-                                                                Visibility="{x:Bind StrikeVisibility, Mode=OneWay}" />
-                                                    </Grid>
-                                                    <Button Grid.Column="2"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
-                                                            Padding="0"
-                                                            HorizontalContentAlignment="Stretch"
-                                                            VerticalContentAlignment="Center"
-                                                            Click="StatusPill_Click">
-                                                        <TextBlock Text="{x:Bind StatusDisplay, Mode=OneWay}"
-                                                                   FontSize="11"
-                                                                   Foreground="{ThemeResource SubtleTextBrush}"
-                                                                   TextWrapping="NoWrap"
-                                                                   TextTrimming="CharacterEllipsis"
-                                                                   HorizontalAlignment="Stretch" />
-                                                    </Button>
+                        <!--  当日计划  -->
+                        <Border
+                            Grid.Column="1"
+                            Padding="12"
+                            Background="#0AFFFFFF"
+                            BorderBrush="{StaticResource GlassBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="14">
+                            <Grid RowSpacing="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    x:Name="DayTitle"
+                                    Grid.Row="0"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Text="1月15日" />
+                                <TextBlock
+                                    Grid.Row="1"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SubtleTextBrush}"
+                                    Text="当日计划" />
+
+                                <ListView
+                                    x:Name="DayList"
+                                    Grid.Row="2"
+                                    ScrollViewer.HorizontalScrollMode="Disabled"
+                                    SelectionMode="None">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:TodoItemVm">
+                                            <Grid Padding="2,8" ColumnSpacing="8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="4" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="52" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border
+                                                    Width="4"
+                                                    Height="18"
+                                                    VerticalAlignment="Center"
+                                                    Background="{x:Bind PriorityBrush, Mode=OneWay}"
+                                                    CornerRadius="2" />
+                                                <Grid Grid.Column="1">
+                                                    <TextBlock
+                                                        HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="12"
+                                                        Foreground="{x:Bind TitleBrush, Mode=OneWay}"
+                                                        Text="{x:Bind Title, Mode=OneWay}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        TextWrapping="NoWrap" />
+                                                    <Border
+                                                        Height="1"
+                                                        Margin="0,1"
+                                                        HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Center"
+                                                        Background="{x:Bind TitleBrush, Mode=OneWay}"
+                                                        Visibility="{x:Bind StrikeVisibility, Mode=OneWay}" />
                                                 </Grid>
-                                            </DataTemplate>
-                                        </ListView.ItemTemplate>
-                                    </ListView>
+                                                <Button
+                                                    Grid.Column="2"
+                                                    Padding="0"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Click="StatusPill_Click">
+                                                    <TextBlock
+                                                        HorizontalAlignment="Stretch"
+                                                        FontSize="11"
+                                                        Foreground="{ThemeResource SubtleTextBrush}"
+                                                        Text="{x:Bind StatusDisplay, Mode=OneWay}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        TextWrapping="NoWrap" />
+                                                </Button>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
 
-                                    <Button Grid.Row="3"
-                                            HorizontalAlignment="Stretch"
-                                            MinHeight="34"
-                                            Click="AddToDay_Click"
-                                            Content="添加到该日" />
-                                </Grid>
-                            </Border>
-                        </Grid>
+                                <Button
+                                    Grid.Row="3"
+                                    MinHeight="34"
+                                    HorizontalAlignment="Stretch"
+                                    Click="AddToDay_Click"
+                                    Content="添加到该日" />
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Grid>
-            </Border>
+            </Grid>
+        </Border>
 
-        <!-- 撤销 Snackbar -->
-        <Border x:Name="Snack"
-                Grid.Row="1"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Bottom"
-                Margin="0,0,0,18"
-                Background="{ThemeResource DialogCardBrush}"
-                BorderBrush="{ThemeResource CardStrokeBrush}"
-                BorderThickness="1"
-                CornerRadius="12"
-                Padding="14,10"
-                Visibility="Collapsed"
-                Canvas.ZIndex="20">
+        <!--  撤销 Snackbar  -->
+        <Border
+            x:Name="Snack"
+            Grid.Row="1"
+            Margin="0,0,0,18"
+            Padding="14,10"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            Background="{ThemeResource DialogCardBrush}"
+            BorderBrush="{ThemeResource CardStrokeBrush}"
+            BorderThickness="1"
+            Canvas.ZIndex="20"
+            CornerRadius="12"
+            Visibility="Collapsed">
             <StackPanel Orientation="Horizontal" Spacing="12">
-                <TextBlock x:Name="SnackText"
-                           Text="已删除"
-                           FontSize="12"
-                           Foreground="{ThemeResource PrimaryTextBrush}"
-                           VerticalAlignment="Center" />
-                <Button Click="Undo_Click"
-                        Background="#334C6FFF"
-                        Foreground="{ThemeResource AccentBrush}"
-                        CornerRadius="8"
-                        Padding="10,5"
-                        Content="撤销" />
+                <TextBlock
+                    x:Name="SnackText"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Foreground="{ThemeResource PrimaryTextBrush}"
+                    Text="已删除" />
+                <Button
+                    Padding="10,5"
+                    Background="#334C6FFF"
+                    Click="Undo_Click"
+                    Content="撤销"
+                    CornerRadius="8"
+                    Foreground="{ThemeResource AccentBrush}" />
             </StackPanel>
         </Border>
 
-        <!-- 设置：全屏遮罩 + 居中弹窗 -->
-        <Grid x:Name="SettingsOverlay"
-              Grid.Row="0"
-              Grid.RowSpan="2"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Stretch"
-              Visibility="Collapsed"
-              Canvas.ZIndex="40">
-            <Border Background="{ThemeResource ScrimBrush}"
-                    Tapped="SettingsScrim_Tapped" />
+        <!--  设置：全屏遮罩 + 居中弹窗  -->
+        <Grid
+            x:Name="SettingsOverlay"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Canvas.ZIndex="40"
+            Visibility="Collapsed">
+            <Border Background="{ThemeResource ScrimBrush}" Tapped="SettingsScrim_Tapped" />
 
-            <Border x:Name="SettingsCard"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    MinWidth="380"
-                    MaxWidth="440"
-                    Background="{ThemeResource DialogCardBrush}"
-                    BorderBrush="{ThemeResource CardStrokeBrush}"
-                    BorderThickness="1"
-                    CornerRadius="16"
-                    Padding="24,20"
-                    Tapped="SettingsCard_Tapped">
-                <StackPanel Spacing="16" MinWidth="340">
+            <Border
+                x:Name="SettingsCard"
+                MinWidth="380"
+                MaxWidth="440"
+                Padding="24,20"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{ThemeResource DialogCardBrush}"
+                BorderBrush="{ThemeResource CardStrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="16"
+                Tapped="SettingsCard_Tapped">
+                <StackPanel MinWidth="340" Spacing="16">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="设置"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" />
-                        <TextBlock Text="窗口与列表偏好"
-                                   FontSize="12"
-                                   Foreground="{ThemeResource SubtleTextBrush}" />
+                        <TextBlock
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource PrimaryTextBrush}"
+                            Text="设置" />
+                        <TextBlock
+                            FontSize="12"
+                            Foreground="{ThemeResource SubtleTextBrush}"
+                            Text="窗口与列表偏好" />
                     </StackPanel>
 
                     <StackPanel Spacing="0">
@@ -556,22 +809,25 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Spacing="2">
-                                <TextBlock Text="窗口置顶"
-                                           FontSize="13"
-                                           Foreground="{ThemeResource PrimaryTextBrush}" />
-                                <TextBlock Text="让待办浮在其它窗口上"
-                                           FontSize="11"
-                                           Foreground="{ThemeResource SubtleTextBrush}"
-                                           TextWrapping="Wrap" />
+                                <TextBlock
+                                    FontSize="13"
+                                    Foreground="{ThemeResource PrimaryTextBrush}"
+                                    Text="窗口置顶" />
+                                <TextBlock
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SubtleTextBrush}"
+                                    Text="让待办浮在其它窗口上"
+                                    TextWrapping="Wrap" />
                             </StackPanel>
-                            <ToggleSwitch x:Name="TopMostSwitch"
-                                          Grid.Column="1"
-                                          MinWidth="0"
-                                          OnContent=""
-                                          OffContent=""
-                                          IsOn="True"
-                                          VerticalAlignment="Center"
-                                          Toggled="TopMostSwitch_Toggled" />
+                            <ToggleSwitch
+                                x:Name="TopMostSwitch"
+                                Grid.Column="1"
+                                MinWidth="0"
+                                VerticalAlignment="Center"
+                                IsOn="True"
+                                OffContent=""
+                                OnContent=""
+                                Toggled="TopMostSwitch_Toggled" />
                         </Grid>
 
                         <Grid Padding="0,10" ColumnSpacing="16">
@@ -580,21 +836,24 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Spacing="2">
-                                <TextBlock Text="隐藏已完成"
-                                           FontSize="13"
-                                           Foreground="{ThemeResource PrimaryTextBrush}" />
-                                <TextBlock Text="列表中不显示已完成项"
-                                           FontSize="11"
-                                           Foreground="{ThemeResource SubtleTextBrush}"
-                                           TextWrapping="Wrap" />
+                                <TextBlock
+                                    FontSize="13"
+                                    Foreground="{ThemeResource PrimaryTextBrush}"
+                                    Text="隐藏已完成" />
+                                <TextBlock
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SubtleTextBrush}"
+                                    Text="列表中不显示已完成项"
+                                    TextWrapping="Wrap" />
                             </StackPanel>
-                            <ToggleSwitch x:Name="HideCompletedSwitch"
-                                          Grid.Column="1"
-                                          MinWidth="0"
-                                          OnContent=""
-                                          OffContent=""
-                                          VerticalAlignment="Center"
-                                          Toggled="HideCompletedSwitch_Toggled" />
+                            <ToggleSwitch
+                                x:Name="HideCompletedSwitch"
+                                Grid.Column="1"
+                                MinWidth="0"
+                                VerticalAlignment="Center"
+                                OffContent=""
+                                OnContent=""
+                                Toggled="HideCompletedSwitch_Toggled" />
                         </Grid>
 
                         <Grid Padding="0,10" ColumnSpacing="16">
@@ -603,27 +862,31 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Spacing="2">
-                                <TextBlock Text="开机自启"
-                                           FontSize="13"
-                                           Foreground="{ThemeResource PrimaryTextBrush}" />
-                                <TextBlock Text="登录 Windows 后自动启动"
-                                           FontSize="11"
-                                           Foreground="{ThemeResource SubtleTextBrush}"
-                                           TextWrapping="Wrap" />
+                                <TextBlock
+                                    FontSize="13"
+                                    Foreground="{ThemeResource PrimaryTextBrush}"
+                                    Text="开机自启" />
+                                <TextBlock
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SubtleTextBrush}"
+                                    Text="登录 Windows 后自动启动"
+                                    TextWrapping="Wrap" />
                             </StackPanel>
-                            <ToggleSwitch x:Name="StartupSwitch"
-                                          Grid.Column="1"
-                                          MinWidth="0"
-                                          OnContent=""
-                                          OffContent=""
-                                          VerticalAlignment="Center"
-                                          Toggled="StartupSwitch_Toggled" />
+                            <ToggleSwitch
+                                x:Name="StartupSwitch"
+                                Grid.Column="1"
+                                MinWidth="0"
+                                VerticalAlignment="Center"
+                                OffContent=""
+                                OnContent=""
+                                Toggled="StartupSwitch_Toggled" />
                         </Grid>
                     </StackPanel>
 
-                    <TextBlock Text="主题 · 跟随系统 · Mica 玻璃"
-                               FontSize="11"
-                               Foreground="{ThemeResource SubtleTextBrush}" />
+                    <TextBlock
+                        FontSize="11"
+                        Foreground="{ThemeResource SubtleTextBrush}"
+                        Text="主题 · 跟随系统 · Mica 玻璃" />
                 </StackPanel>
             </Border>
         </Grid>

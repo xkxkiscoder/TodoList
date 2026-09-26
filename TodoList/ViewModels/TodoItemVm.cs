@@ -45,10 +45,62 @@ public sealed class TodoItemVm : INotifyPropertyChanged
             OnPropertyChanged(nameof(StatusGlyph));
             OnPropertyChanged(nameof(StatusBrush));
             OnPropertyChanged(nameof(TitleBrush));
+            OnPropertyChanged(nameof(StrikeVisibility));
             OnPropertyChanged(nameof(StatusBackground));
             OnPropertyChanged(nameof(StatusBorder));
+            OnPropertyChanged(nameof(StatusDotBrush));
+            OnPropertyChanged(nameof(NotStartedDotBrush));
+            OnPropertyChanged(nameof(InProgressDotBrush));
+            OnPropertyChanged(nameof(CompletedDotBrush));
+            OnPropertyChanged(nameof(NotStartedCapsuleBg));
+            OnPropertyChanged(nameof(InProgressCapsuleBg));
+            OnPropertyChanged(nameof(CompletedCapsuleBg));
+            OnPropertyChanged(nameof(StatusChipVis));
+            OnPropertyChanged(nameof(StatusOptionsVis));
         }
     }
+
+    private bool _statusExpanded;
+
+    public bool StatusExpanded
+    {
+        get => _statusExpanded;
+        set
+        {
+            if (_statusExpanded == value) return;
+            _statusExpanded = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(StatusChipVis));
+            OnPropertyChanged(nameof(StatusOptionsVis));
+        }
+    }
+
+    public Visibility StatusChipVis =>
+        StatusExpanded ? Visibility.Collapsed : Visibility.Visible;
+
+    public Visibility StatusOptionsVis =>
+        StatusExpanded ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>当前状态圆点颜色。</summary>
+    public Brush StatusDotBrush => Parse(Source.Status.ToColorHex());
+
+    public Brush NotStartedDotBrush => Parse("#8E8E93");
+    public Brush InProgressDotBrush => Parse("#2F5FD0");
+    public Brush CompletedDotBrush => Parse("#3DCF8E");
+
+    /// <summary>展开时当前态高亮，未选中用更实的玻璃底（不过透）。</summary>
+    public Brush NotStartedCapsuleBg =>
+        Status == TodoStatus.NotStarted ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+
+    public Brush InProgressCapsuleBg =>
+        Status == TodoStatus.InProgress ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+
+    public Brush CompletedCapsuleBg =>
+        Status == TodoStatus.Completed ? Parse("#294C6FFF") : Parse("#CCEEF2F8");
+
+    /// <summary>收起态胶囊。</summary>
+    public Brush StatusChipBg => Parse("#CCEEF2F8");
+    public Brush StatusChipStroke => Parse("#33000000");
 
     public TodoPriority Priority
     {
@@ -190,5 +242,16 @@ public sealed class TodoItemVm : INotifyPropertyChanged
         OnPropertyChanged(nameof(PriorityChipBackground));
         OnPropertyChanged(nameof(NotesVisibility));
         OnPropertyChanged(nameof(OverdueDotVisibility));
+        OnPropertyChanged(nameof(StatusDotBrush));
+        OnPropertyChanged(nameof(NotStartedDotBrush));
+        OnPropertyChanged(nameof(InProgressDotBrush));
+        OnPropertyChanged(nameof(CompletedDotBrush));
+        OnPropertyChanged(nameof(NotStartedCapsuleBg));
+        OnPropertyChanged(nameof(InProgressCapsuleBg));
+        OnPropertyChanged(nameof(CompletedCapsuleBg));
+        OnPropertyChanged(nameof(StatusChipBg));
+        OnPropertyChanged(nameof(StatusChipStroke));
+        OnPropertyChanged(nameof(StatusChipVis));
+        OnPropertyChanged(nameof(StatusOptionsVis));
     }
 }
