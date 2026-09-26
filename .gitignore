@@ -1,0 +1,27 @@
+# Build
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS
+.vs/
+*.rsuser
+
+# NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# App local
+*.log
