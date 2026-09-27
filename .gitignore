@@ -25,3 +25,5 @@ Desktop.ini
 
 # App local
 *.log
+
+corner*.png
