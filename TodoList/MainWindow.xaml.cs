@@ -183,7 +183,7 @@ public sealed partial class MainWindow : Window
         var maximized = AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p
             && p.State == OverlappedPresenterState.Maximized;
         if (MaxIcon is not null)
-            MaxIcon.Glyph = maximized ? "" : "";
+            MaxIcon.Glyph = maximized ? "\uE923" : "\uE922";
     }
 
     private void MinButton_Click(object sender, RoutedEventArgs e)
