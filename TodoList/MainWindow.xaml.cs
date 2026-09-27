@@ -1,14 +1,15 @@
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using TodoList.Models;
 using TodoList.Services;
 using TodoList.ViewModels;
-using TodoList.Views;
 using Windows.System;
 using Windows.UI;
 using WinRT.Interop;
@@ -26,7 +27,6 @@ public sealed partial class MainWindow : Window
         Calendar
     }
 
-    private readonly TodoStore _store = new();
     private readonly StartupService _startup = new();
     private readonly AppSettings _settings = AppSettings.Load();
 
@@ -58,11 +58,7 @@ public sealed partial class MainWindow : Window
         Root.KeyDown += Root_KeyDown;
         Closed += MainWindow_Closed;
 
-        ViewModel.EditRequested += async (s, vm) =>
-        {
-            await EditAsync(vm);
-            ViewModel.ReloadAfterEdit();
-        };
+        ViewModel.EditRequested += (_, vm) => OpenDetail(vm);
         ViewModel.GroupsChanged += (_, _) => UpdateEmptyState();
 
         ShowView(_settings.LastView switch
@@ -427,8 +423,15 @@ public sealed partial class MainWindow : Window
         }
         else if (e.Key == VirtualKey.Escape)
         {
-            CloseSettings();
-            ViewModel.DismissSnack();
+            if (DetailPanel.Visibility == Visibility.Visible)
+            {
+                CloseDetail();
+            }
+            else
+            {
+                CloseSettings();
+                ViewModel.DismissSnack();
+            }
             e.Handled = true;
         }
     }
@@ -441,6 +444,11 @@ public sealed partial class MainWindow : Window
         SegAll.IsChecked = mode == ViewMode.All;
         SegToday.IsChecked = mode == ViewMode.Today;
         SegCalendar.IsChecked = mode == ViewMode.Calendar;
+
+        // 从详情页切回列表视图
+        _detailVm = null;
+        DetailPanel.Visibility = Visibility.Collapsed;
+        QuickAddRow.Visibility = Visibility.Visible;
 
         ListPanel.Visibility = mode == ViewMode.Calendar ? Visibility.Collapsed : Visibility.Visible;
         CalendarPanel.Visibility = mode == ViewMode.Calendar ? Visibility.Visible : Visibility.Collapsed;
@@ -561,8 +569,8 @@ public sealed partial class MainWindow : Window
         var prevDays = first.AddMonths(-1).Day;
 
         var today = DateOnly.FromDateTime(DateTime.Today);
-        var dateCounts = _store.GetDatesWithTodos(first.Year, first.Month)
-            .ToDictionary(d => d, d => _store.GetForDate(d).Count);
+        var dateCounts = ViewModel.Store.GetDatesWithTodos(first.Year, first.Month)
+            .ToDictionary(d => d, d => ViewModel.Store.GetForDate(d).Count);
 
         for (var i = 0; i < 42; i++)
         {
@@ -754,33 +762,174 @@ public sealed partial class MainWindow : Window
         QuickTitle.Focus(FocusState.Programmatic);
     }
 
-    private async void EditItem_Click(object sender, RoutedEventArgs e)
-    {
-        if ((sender as FrameworkElement)?.DataContext is not TodoItemVm vm)
-            return;
+    // ───────── detail page ─────────
 
-        await EditAsync(vm);
+    private TodoItemVm? _detailVm;
+
+    /// <summary>行点击：跳转详情页（点击行内按钮/状态胶囊时不触发）。</summary>
+    private void Item_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (e.OriginalSource is not DependencyObject source)
+            return;
+        if (IsInsideButton(source, sender as DependencyObject))
+            return;
+        if ((sender as FrameworkElement)?.DataContext is TodoItemVm vm)
+            OpenDetail(vm);
     }
 
-    private async System.Threading.Tasks.Task EditAsync(TodoItemVm vm)
+    /// <summary>沿视觉树向上查找，判断点击源是否落在按钮内。</summary>
+    private static bool IsInsideButton(DependencyObject source, DependencyObject? boundary)
     {
-        var dialog = new EditTodoDialog
+        var current = source;
+        while (current is not null && current != boundary)
         {
-            XamlRoot = Content.XamlRoot
-        };
-        dialog.SetValues(vm.Title, vm.Notes, vm.Status, vm.Priority, vm.PlannedDate);
+            if (current is Microsoft.UI.Xaml.Controls.Primitives.ButtonBase)
+                return true;
+            current = VisualTreeHelper.GetParent(current);
+        }
+        return false;
+    }
 
-        await dialog.ShowAsync();
-        if (!dialog.IsConfirmed) return;
+    private void OpenDetail(TodoItemVm vm)
+    {
+        _detailVm = vm;
 
-        vm.Title = dialog.TitleText;
-        vm.Notes = dialog.NotesText;
-        vm.Status = dialog.StatusValue;
-        vm.Priority = dialog.PriorityValue;
-        vm.PlannedDate = dialog.PlannedDateValue;
-        _store.Update(vm.Source);
+        DetailTitleBox.Text = vm.Title;
+        DetailNotesBox.Text = vm.Notes;
+        SelectDetailStatus(vm.Status);
+        SelectDetailPriority(vm.Priority);
+        if (vm.PlannedDate is null)
+        {
+            DetailDatePick.Date = null;
+            DetailDatePick.PlaceholderText = "未排期";
+        }
+        else
+        {
+            DetailDatePick.Date = new DateTimeOffset(
+                vm.PlannedDate.Value.ToDateTime(TimeOnly.MinValue));
+        }
+
+        DetailMetaText.Text = $"创建于 {vm.Source.CreatedAt:yyyy-MM-dd HH:mm} · 更新于 {vm.Source.UpdatedAt:yyyy-MM-dd HH:mm}";
+
+        ShowDetail(true);
+    }
+
+    private void ShowDetail(bool visible)
+    {
+        DetailPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+
+        // 详情页与列表/日历互斥显示，快速添加行一并隐藏
+        QuickAddRow.Visibility = visible ? Visibility.Collapsed : Visibility.Visible;
+        if (visible)
+        {
+            ListPanel.Visibility = Visibility.Collapsed;
+            CalendarPanel.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            _ = _view; // 恢复由 ShowView 负责
+        }
+    }
+
+    private void DetailBack_Click(object sender, RoutedEventArgs e) => CloseDetail();
+
+    private void CloseDetail()
+    {
+        ShowDetail(false);
+        _detailVm = null;
+        ShowView(_view); // 恢复原视图可见性
+    }
+
+    private void DetailSave_Click(object sender, RoutedEventArgs e)
+    {
+        if (_detailVm is null) return;
+
+        var title = DetailTitleBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(title))
+        {
+            DetailTitleBox.Focus(FocusState.Programmatic);
+            return;
+        }
+
+        var vm = _detailVm;
+        vm.Title = title;
+        vm.Notes = DetailNotesBox.Text?.Trim() ?? string.Empty;
+        vm.Priority = ReadDetailPriority();
+        // 状态可能触发“完成→今天”，先写状态再按用户选择覆盖计划日
+        vm.Status = ReadDetailStatus();
+        vm.PlannedDate = DetailDatePick.Date is null
+            ? null
+            : DateOnly.FromDateTime(DetailDatePick.Date.Value.LocalDateTime.Date);
+
+        ViewModel.Store.Update(vm.Source);
         vm.RefreshAll();
+        ViewModel.ReloadAfterEdit();
         Refresh();
+        CloseDetail();
+    }
+
+    private void DetailDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (_detailVm is null) return;
+        var vm = _detailVm;
+        CloseDetail();
+        WeakReferenceMessenger.Default.Send(new TodoDeleteMsg(vm));
+    }
+
+    private void DetailClearDate_Click(object sender, RoutedEventArgs e)
+    {
+        DetailDatePick.Date = null;
+        DetailDatePick.PlaceholderText = "未排期";
+    }
+
+    private void SelectDetailStatus(TodoStatus status)
+    {
+        DetailStatusCombo.SelectedIndex = status switch
+        {
+            TodoStatus.InProgress => 1,
+            TodoStatus.Completed => 2,
+            _ => 0
+        };
+    }
+
+    private void SelectDetailPriority(TodoPriority priority)
+    {
+        DetailPriorityCombo.SelectedIndex = priority switch
+        {
+            TodoPriority.Low => 0,
+            TodoPriority.High => 2,
+            TodoPriority.Critical => 3,
+            _ => 1
+        };
+    }
+
+    private TodoStatus ReadDetailStatus()
+    {
+        if (DetailStatusCombo.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+        {
+            return tag switch
+            {
+                "InProgress" => TodoStatus.InProgress,
+                "Completed" => TodoStatus.Completed,
+                _ => TodoStatus.NotStarted
+            };
+        }
+        return TodoStatus.NotStarted;
+    }
+
+    private TodoPriority ReadDetailPriority()
+    {
+        if (DetailPriorityCombo.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+        {
+            return tag switch
+            {
+                "Low" => TodoPriority.Low,
+                "High" => TodoPriority.High,
+                "Critical" => TodoPriority.Critical,
+                _ => TodoPriority.Medium
+            };
+        }
+        return TodoPriority.Medium;
     }
 
     private static int StatusRank(TodoStatus status) => status switch
@@ -873,7 +1022,7 @@ public sealed partial class MainWindow : Window
         var ordered = _allItems.Select(i => i.Id).ToList();
         for (var i = 0; i < _allItems.Count; i++)
             _allItems[i].SortOrder = i;
-        _store.Reorder(ordered);
+        ViewModel.Store.Reorder(ordered);
     }
 
     // ───────── search / filter ─────────

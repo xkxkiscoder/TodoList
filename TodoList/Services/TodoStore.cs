@@ -17,7 +17,11 @@ public sealed class TodoStore
     };
 
     private readonly string _filePath;
+    private readonly string _backupDir;
     private readonly object _gate = new();
+
+    /// <summary>滚动备份数量：覆盖写盘前把旧文件存进 Backups/，防止过期快照覆盖丢失数据。</summary>
+    private const int MaxBackups = 30;
 
     public List<TodoItem> Items { get; private set; } = new();
 
@@ -32,6 +36,7 @@ public sealed class TodoStore
             "TodoList");
         Directory.CreateDirectory(dir);
         _filePath = filePath ?? Path.Combine(dir, "todos.json");
+        _backupDir = Path.Combine(dir, "Backups");
         Load();
     }
 
@@ -52,8 +57,27 @@ public sealed class TodoStore
             }
             catch
             {
-                Items = new List<TodoItem>();
+                // 主文件损坏时回退到最近一次备份
+                Items = LoadLatestBackup() ?? new List<TodoItem>();
             }
+        }
+    }
+
+    private List<TodoItem>? LoadLatestBackup()
+    {
+        try
+        {
+            if (!Directory.Exists(_backupDir)) return null;
+            var latest = Directory.GetFiles(_backupDir, "todos-*.json")
+                .OrderByDescending(f => f)
+                .FirstOrDefault();
+            if (latest is null) return null;
+            var json = File.ReadAllText(latest);
+            return JsonSerializer.Deserialize<List<TodoItem>>(json, JsonOptions);
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -61,8 +85,35 @@ public sealed class TodoStore
     {
         lock (_gate)
         {
+            // 覆盖前先留一份当前文件（滚动备份），即使写入方是过期数据也可人工找回
+            BackupCurrentFile();
+
             var json = JsonSerializer.Serialize(Items, JsonOptions);
             File.WriteAllText(_filePath, json);
+        }
+    }
+
+    private void BackupCurrentFile()
+    {
+        try
+        {
+            if (!File.Exists(_filePath)) return;
+            Directory.CreateDirectory(_backupDir);
+
+            var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            var backup = Path.Combine(_backupDir, $"todos-{stamp}.json");
+            File.Copy(_filePath, backup, overwrite: true);
+
+            // 修剪：只保留最近 MaxBackups 份
+            var all = Directory.GetFiles(_backupDir, "todos-*.json")
+                .OrderByDescending(f => f)
+                .Skip(MaxBackups);
+            foreach (var old in all)
+                File.Delete(old);
+        }
+        catch
+        {
+            // 备份失败不阻断主写入
         }
     }
 

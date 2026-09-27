@@ -167,7 +167,7 @@
                 </Grid.RowDefinitions>
 
                 <!--  快速添加  -->
-                <Grid Grid.Row="0" ColumnSpacing="8">
+                <Grid x:Name="QuickAddRow" Grid.Row="0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="110" />
@@ -316,7 +316,8 @@
                                     <Grid
                                         MinHeight="48"
                                         Padding="0,6"
-                                        ColumnSpacing="8">
+                                        ColumnSpacing="8"
+                                        Tapped="Item_Tapped">
                                         <Grid.ContextFlyout>
                                             <MenuFlyout>
                                                 <MenuFlyoutItem Command="{x:Bind OpenEditorCommand}" Text="编辑" />
@@ -732,7 +733,7 @@
                                     </ListView.GroupStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="vm:TodoItemVm">
-                                            <Grid Padding="2,8" ColumnSpacing="8">
+                                            <Grid Padding="2,8" ColumnSpacing="8" Tapped="Item_Tapped">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="4" />
                                                     <ColumnDefinition Width="*" />
@@ -790,6 +791,137 @@
                                     Content="添加到该日" />
                             </Grid>
                         </Border>
+                    </Grid>
+
+                    <!--  详情页  -->
+                    <Grid
+                        x:Name="DetailPanel"
+                        Visibility="Collapsed"
+                        RowSpacing="14">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!--  头部：返回 + 操作  -->
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button
+                                x:Name="DetailBackButton"
+                                Padding="12,7"
+                                Click="DetailBack_Click"
+                                CornerRadius="9">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon FontSize="12" Glyph="&#xE72B;" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Text="返回" />
+                                </StackPanel>
+                            </Button>
+
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Text="待办详情" />
+
+                            <Button
+                                Grid.Column="2"
+                                Padding="12,7"
+                                Click="DetailDelete_Click"
+                                CornerRadius="9"
+                                Foreground="{StaticResource PrioCritBrush}"
+                                Content="删除" />
+                        </Grid>
+
+                        <!--  字段  -->
+                        <ScrollViewer
+                            Grid.Row="1"
+                            HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollBarVisibility="Auto">
+                            <StackPanel
+                                MaxWidth="560"
+                                MinWidth="320"
+                                HorizontalAlignment="Left"
+                                Spacing="14">
+                                <TextBox
+                                    x:Name="DetailTitleBox"
+                                    Header="标题"
+                                    MaxLength="200"
+                                    PlaceholderText="必填" />
+
+                                <TextBox
+                                    x:Name="DetailNotesBox"
+                                    Header="备注"
+                                    AcceptsReturn="True"
+                                    Height="120"
+                                    MaxLength="2000"
+                                    PlaceholderText="可选"
+                                    TextWrapping="Wrap" />
+
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ComboBox
+                                        x:Name="DetailStatusCombo"
+                                        Header="状态"
+                                        HorizontalAlignment="Stretch">
+                                        <ComboBoxItem Content="未开始" Tag="NotStarted" />
+                                        <ComboBoxItem Content="进行中" Tag="InProgress" />
+                                        <ComboBoxItem Content="已完成" Tag="Completed" />
+                                    </ComboBox>
+
+                                    <ComboBox
+                                        x:Name="DetailPriorityCombo"
+                                        Grid.Column="1"
+                                        Header="优先级"
+                                        HorizontalAlignment="Stretch">
+                                        <ComboBoxItem Content="低" Tag="Low" />
+                                        <ComboBoxItem Content="中" Tag="Medium" />
+                                        <ComboBoxItem Content="高" Tag="High" />
+                                        <ComboBoxItem Content="紧急" Tag="Critical" />
+                                    </ComboBox>
+                                </Grid>
+
+                                <CalendarDatePicker
+                                    x:Name="DetailDatePick"
+                                    Header="计划日"
+                                    HorizontalAlignment="Stretch"
+                                    PlaceholderText="未排期" />
+
+                                <Button
+                                    HorizontalAlignment="Left"
+                                    Click="DetailClearDate_Click"
+                                    Content="清除计划日" />
+
+                                <TextBlock
+                                    x:Name="DetailMetaText"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SubtleTextBrush}"
+                                    Text="" />
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!--  底部：保存  -->
+                        <Button
+                            Grid.Row="2"
+                            MinHeight="38"
+                            HorizontalAlignment="Stretch"
+                            Background="{StaticResource AccentBrush}"
+                            Click="DetailSave_Click"
+                            Content="保存更改"
+                            CornerRadius="10" />
                     </Grid>
                 </Grid>
             </Grid>
