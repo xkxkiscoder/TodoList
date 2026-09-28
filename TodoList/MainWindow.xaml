@@ -28,9 +28,9 @@
             <Grid>
                 <Grid
                     x:Name="TitleBarDrag"
-                    Background="Transparent"
                     HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch" />
+                    VerticalAlignment="Stretch"
+                    Background="Transparent" />
                 <Grid ColumnSpacing="16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -93,29 +93,10 @@
                     <StackPanel
                         x:Name="ActionsPanel"
                         Grid.Column="3"
-                        VerticalAlignment="Center"
                         HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
                         Orientation="Horizontal"
                         Spacing="4">
-                        <Button
-                            x:Name="NewButton"
-                            Height="34"
-                            Padding="12,0"
-                            VerticalAlignment="Center"
-                            Background="#336B8CFF"
-                            BorderBrush="#476B8CFF"
-                            BorderThickness="1"
-                            Click="NewButton_Click"
-                            CornerRadius="10"
-                            ToolTipService.ToolTip="新建待办 (Ctrl+N)">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon FontSize="13" Glyph="&#xE710;" />
-                                <TextBlock
-                                    FontSize="12"
-                                    FontWeight="SemiBold"
-                                    Text="新建" />
-                            </StackPanel>
-                        </Button>
                         <Button
                             x:Name="SettingsButton"
                             Click="SettingsButton_Click"
@@ -127,22 +108,9 @@
                             Width="1"
                             Height="18"
                             Margin="4,0"
-                            Background="{ThemeResource GlassBorderBrush}"
-                            VerticalAlignment="Center" />
-                        <Button
-                            x:Name="MinButton"
-                            Click="MinButton_Click"
-                            Style="{StaticResource IconBtnStyle}"
-                            ToolTipService.ToolTip="最小化">
-                            <FontIcon FontSize="13" Glyph="&#xE921;" />
-                        </Button>
-                        <Button
-                            x:Name="MaxButton"
-                            Click="MaxButton_Click"
-                            Style="{StaticResource IconBtnStyle}"
-                            ToolTipService.ToolTip="最大化 / 还原">
-                            <FontIcon x:Name="MaxIcon" FontSize="13" Glyph="&#xE922;" />
-                        </Button>
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource GlassBorderBrush}" />
+                        <!--  仅保留关闭按钮  -->
                         <Button
                             x:Name="CloseButton"
                             Click="CloseButton_Click"
@@ -166,17 +134,26 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!--  快速添加  -->
-                <Grid x:Name="QuickAddRow" Grid.Row="0" ColumnSpacing="8">
+                <!--  快速添加：窄窗口自动换行为两行（UpdateQuickAddLayout）  -->
+                <Grid
+                    x:Name="QuickAddRow"
+                    Grid.Row="0"
+                    ColumnSpacing="8"
+                    RowSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="110" />
-                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition x:Name="QuickAddCol0" Width="*" />
+                        <ColumnDefinition x:Name="QuickAddCol1" Width="110" />
+                        <ColumnDefinition x:Name="QuickAddCol2" Width="120" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <AutoSuggestBox
                         x:Name="QuickTitle"
+                        Grid.Row="0"
                         Grid.Column="0"
                         MinHeight="38"
                         PlaceholderText="添加待办，回车确认…"
@@ -185,6 +162,7 @@
 
                     <ComboBox
                         x:Name="QuickPriority"
+                        Grid.Row="0"
                         Grid.Column="1"
                         MinHeight="38"
                         VerticalAlignment="Stretch"
@@ -197,12 +175,14 @@
 
                     <CalendarDatePicker
                         x:Name="QuickDate"
+                        Grid.Row="0"
                         Grid.Column="2"
                         MinHeight="38"
                         PlaceholderText="计划日 可选" />
 
                     <Button
                         x:Name="QuickAddButton"
+                        Grid.Row="0"
                         Grid.Column="3"
                         MinHeight="38"
                         Padding="16,0"
@@ -272,11 +252,11 @@
                             CanReorderItems="True"
                             DragItemsCompleted="MainListView_DragItemsCompleted"
                             IsItemClickEnabled="False"
+                            ItemsSource="{x:Bind ViewModel.GroupsView.View, Mode=OneWay}"
                             ReorderMode="Enabled"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                             ScrollViewer.HorizontalScrollMode="Disabled"
-                            SelectionMode="None"
-                            ItemsSource="{x:Bind ViewModel.GroupsView.View, Mode=OneWay}">
+                            SelectionMode="None">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="Padding" Value="0" />
@@ -295,16 +275,16 @@
                                                 Tapped="GroupHeader_Tapped">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <TextBlock
+                                                        VerticalAlignment="Center"
                                                         FontSize="11"
                                                         Foreground="{ThemeResource SubtleTextBrush}"
-                                                        Text="{x:Bind ChevronGlyph, Mode=OneWay}"
-                                                        VerticalAlignment="Center" />
+                                                        Text="{x:Bind ChevronGlyph, Mode=OneWay}" />
                                                     <TextBlock
+                                                        VerticalAlignment="Center"
                                                         FontSize="11"
                                                         FontWeight="SemiBold"
                                                         Foreground="{ThemeResource SubtleTextBrush}"
-                                                        Text="{x:Bind HeaderText, Mode=OneTime}"
-                                                        VerticalAlignment="Center" />
+                                                        Text="{x:Bind HeaderText, Mode=OneTime}" />
                                                 </StackPanel>
                                             </Grid>
                                         </DataTemplate>
@@ -342,19 +322,19 @@
                                             PointerExited="StatusChip_PointerExited">
                                             <Button
                                                 Padding="0"
-                                                Background="Transparent"
-                                                BorderThickness="0"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
+                                                Background="Transparent"
+                                                BorderThickness="0"
                                                 Command="{x:Bind ToggleStatusCommand}"
-                                                Visibility="{x:Bind StatusChipVis, Mode=OneWay}"
-                                                ToolTipService.ToolTip="点击循环状态；悬停可选择">
+                                                ToolTipService.ToolTip="点击循环状态；悬停可选择"
+                                                Visibility="{x:Bind StatusChipVis, Mode=OneWay}">
                                                 <TextBlock
-                                                    Text="{x:Bind StatusGlyph, Mode=OneWay}"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
                                                     FontSize="15"
                                                     Foreground="{x:Bind StatusDotBrush, Mode=OneWay}"
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center" />
+                                                    Text="{x:Bind StatusGlyph, Mode=OneWay}" />
                                             </Button>
                                         </Grid>
 
@@ -383,9 +363,10 @@
                                                     VerticalAlignment="Center"
                                                     FontSize="13"
                                                     Foreground="{x:Bind TitleBrush, Mode=OneWay}"
+                                                    MaxLines="2"
                                                     Text="{x:Bind Title, Mode=OneWay}"
                                                     TextTrimming="CharacterEllipsis"
-                                                    TextWrapping="NoWrap" />
+                                                    TextWrapping="Wrap" />
                                                 <Border
                                                     Height="1"
                                                     Margin="0,1"
@@ -400,9 +381,10 @@
                                                 HorizontalAlignment="Stretch"
                                                 FontSize="11"
                                                 Foreground="{ThemeResource SubtleTextBrush}"
+                                                MaxLines="2"
                                                 Text="{x:Bind Notes, Mode=OneWay}"
                                                 TextTrimming="CharacterEllipsis"
-                                                TextWrapping="NoWrap"
+                                                TextWrapping="Wrap"
                                                 Visibility="{x:Bind NotesVisibility, Mode=OneWay}" />
                                         </Grid>
 
@@ -451,26 +433,26 @@
                                             <StackPanel
                                                 Canvas.Left="0"
                                                 Canvas.Top="4"
-                                                Orientation="Horizontal"
-                                                Spacing="4"
+                                                Padding="4,2"
                                                 Background="{ThemeResource SolidCardBrush}"
                                                 CornerRadius="10"
-                                                Padding="4,2">
+                                                Orientation="Horizontal"
+                                                Spacing="4">
                                                 <Button
                                                     Width="28"
                                                     Height="28"
                                                     Padding="0"
                                                     Background="{ThemeResource SolidChipBrush}"
                                                     BorderThickness="0"
-                                                    CornerRadius="8"
                                                     Command="{x:Bind SetNotStartedCommand}"
+                                                    CornerRadius="8"
                                                     ToolTipService.ToolTip="未开始">
                                                     <TextBlock
-                                                        Text="○"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
                                                         FontSize="15"
                                                         Foreground="{x:Bind NotStartedDotBrush, Mode=OneWay}"
-                                                        HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center" />
+                                                        Text="○" />
                                                 </Button>
                                                 <Button
                                                     Width="28"
@@ -478,15 +460,15 @@
                                                     Padding="0"
                                                     Background="{ThemeResource SolidChipBrush}"
                                                     BorderThickness="0"
-                                                    CornerRadius="8"
                                                     Command="{x:Bind SetInProgressCommand}"
+                                                    CornerRadius="8"
                                                     ToolTipService.ToolTip="进行中">
                                                     <TextBlock
-                                                        Text="●"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
                                                         FontSize="15"
                                                         Foreground="{x:Bind InProgressDotBrush, Mode=OneWay}"
-                                                        HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center" />
+                                                        Text="●" />
                                                 </Button>
                                                 <Button
                                                     Width="28"
@@ -494,15 +476,15 @@
                                                     Padding="0"
                                                     Background="{ThemeResource SolidChipBrush}"
                                                     BorderThickness="0"
-                                                    CornerRadius="8"
                                                     Command="{x:Bind SetCompletedCommand}"
+                                                    CornerRadius="8"
                                                     ToolTipService.ToolTip="已完成">
                                                     <TextBlock
-                                                        Text="✓"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
                                                         FontSize="15"
                                                         Foreground="{x:Bind CompletedDotBrush, Mode=OneWay}"
-                                                        HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center" />
+                                                        Text="✓" />
                                                 </Button>
                                             </StackPanel>
                                         </Canvas>
@@ -533,18 +515,25 @@
                         </StackPanel>
                     </Grid>
 
-                    <!--  日历  -->
+                    <!--  日历：窄窗口时上下堆叠（UpdateCalendarLayout）  -->
                     <Grid
                         x:Name="CalendarPanel"
                         ColumnSpacing="12"
+                        RowSpacing="12"
                         Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="240" />
+                            <ColumnDefinition x:Name="CalendarCol1" Width="240" />
                         </Grid.ColumnDefinitions>
 
                         <!--  月历  -->
                         <Border
+                            x:Name="MonthCard"
+                            Grid.Row="0"
                             Grid.Column="0"
                             Padding="12"
                             Background="#0AFFFFFF"
@@ -665,6 +654,8 @@
 
                         <!--  当日计划  -->
                         <Border
+                            x:Name="DayPlanCard"
+                            Grid.Row="0"
                             Grid.Column="1"
                             Padding="12"
                             Background="#0AFFFFFF"
@@ -694,9 +685,9 @@
                                 <ListView
                                     x:Name="DayList"
                                     Grid.Row="2"
+                                    ItemsSource="{x:Bind ViewModel.DayGroupsView.View, Mode=OneWay}"
                                     ScrollViewer.HorizontalScrollMode="Disabled"
-                                    SelectionMode="None"
-                                    ItemsSource="{x:Bind ViewModel.DayGroupsView.View, Mode=OneWay}">
+                                    SelectionMode="None">
                                     <ListView.ItemContainerStyle>
                                         <Style TargetType="ListViewItem">
                                             <Setter Property="Padding" Value="0" />
@@ -715,16 +706,16 @@
                                                         Tapped="GroupHeader_Tapped">
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <TextBlock
+                                                                VerticalAlignment="Center"
                                                                 FontSize="11"
                                                                 Foreground="{ThemeResource SubtleTextBrush}"
-                                                                Text="{x:Bind ChevronGlyph, Mode=OneWay}"
-                                                                VerticalAlignment="Center" />
+                                                                Text="{x:Bind ChevronGlyph, Mode=OneWay}" />
                                                             <TextBlock
+                                                                VerticalAlignment="Center"
                                                                 FontSize="11"
                                                                 FontWeight="SemiBold"
                                                                 Foreground="{ThemeResource SubtleTextBrush}"
-                                                                Text="{x:Bind HeaderText, Mode=OneTime}"
-                                                                VerticalAlignment="Center" />
+                                                                Text="{x:Bind HeaderText, Mode=OneTime}" />
                                                         </StackPanel>
                                                     </Grid>
                                                 </DataTemplate>
@@ -733,7 +724,10 @@
                                     </ListView.GroupStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="vm:TodoItemVm">
-                                            <Grid Padding="2,8" ColumnSpacing="8" Tapped="Item_Tapped">
+                                            <Grid
+                                                Padding="2,8"
+                                                ColumnSpacing="8"
+                                                Tapped="Item_Tapped">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="4" />
                                                     <ColumnDefinition Width="*" />
@@ -796,8 +790,8 @@
                     <!--  详情页  -->
                     <Grid
                         x:Name="DetailPanel"
-                        Visibility="Collapsed"
-                        RowSpacing="14">
+                        RowSpacing="14"
+                        Visibility="Collapsed">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -837,9 +831,9 @@
                                 Grid.Column="2"
                                 Padding="12,7"
                                 Click="DetailDelete_Click"
+                                Content="删除"
                                 CornerRadius="9"
-                                Foreground="{StaticResource PrioCritBrush}"
-                                Content="删除" />
+                                Foreground="{StaticResource PrioCritBrush}" />
                         </Grid>
 
                         <!--  字段  -->
@@ -848,8 +842,8 @@
                             HorizontalScrollBarVisibility="Disabled"
                             VerticalScrollBarVisibility="Auto">
                             <StackPanel
-                                MaxWidth="560"
                                 MinWidth="320"
+                                MaxWidth="560"
                                 HorizontalAlignment="Left"
                                 Spacing="14">
                                 <TextBox
@@ -860,9 +854,9 @@
 
                                 <TextBox
                                     x:Name="DetailNotesBox"
-                                    Header="备注"
-                                    AcceptsReturn="True"
                                     Height="120"
+                                    AcceptsReturn="True"
+                                    Header="备注"
                                     MaxLength="2000"
                                     PlaceholderText="可选"
                                     TextWrapping="Wrap" />
@@ -875,8 +869,8 @@
 
                                     <ComboBox
                                         x:Name="DetailStatusCombo"
-                                        Header="状态"
-                                        HorizontalAlignment="Stretch">
+                                        HorizontalAlignment="Stretch"
+                                        Header="状态">
                                         <ComboBoxItem Content="未开始" Tag="NotStarted" />
                                         <ComboBoxItem Content="进行中" Tag="InProgress" />
                                         <ComboBoxItem Content="已完成" Tag="Completed" />
@@ -885,8 +879,8 @@
                                     <ComboBox
                                         x:Name="DetailPriorityCombo"
                                         Grid.Column="1"
-                                        Header="优先级"
-                                        HorizontalAlignment="Stretch">
+                                        HorizontalAlignment="Stretch"
+                                        Header="优先级">
                                         <ComboBoxItem Content="低" Tag="Low" />
                                         <ComboBoxItem Content="中" Tag="Medium" />
                                         <ComboBoxItem Content="高" Tag="High" />
@@ -896,8 +890,8 @@
 
                                 <CalendarDatePicker
                                     x:Name="DetailDatePick"
-                                    Header="计划日"
                                     HorizontalAlignment="Stretch"
+                                    Header="计划日"
                                     PlaceholderText="未排期" />
 
                                 <Button

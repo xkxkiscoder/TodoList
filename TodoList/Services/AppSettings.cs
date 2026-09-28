@@ -6,7 +6,7 @@ namespace TodoList.Services;
 /// <summary>应用设置：置顶、自启开关的记忆项、窗口几何。</summary>
 public sealed class AppSettings
 {
-    public bool AlwaysOnTop { get; set; } = true;
+    public bool AlwaysOnTop { get; set; } = false;
     public bool HideCompleted { get; set; }
     public bool StartWithWindows { get; set; }
     public double WindowWidth { get; set; } = 920;

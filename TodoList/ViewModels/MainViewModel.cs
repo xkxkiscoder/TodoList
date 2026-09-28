@@ -84,34 +84,34 @@ public partial class MainViewModel : ObservableObject,
     public event EventHandler? GroupsChanged;
 
     [ObservableProperty]
-    public partial AppViewMode CurrentView { get; set; } = AppViewMode.All;
+    private AppViewMode _currentView;
 
     [ObservableProperty]
-    public partial string SearchText { get; set; } = string.Empty;
+    private string _searchText = string.Empty;
 
     [ObservableProperty]
-    public partial bool HideCompleted { get; set; }
+    private bool _hideCompleted;
 
     [ObservableProperty]
-    public partial bool AlwaysOnTop { get; set; } = true;
+    private bool _alwaysOnTop;
 
     [ObservableProperty]
-    public partial bool StartWithWindows { get; set; }
+    private bool _startWithWindows;
 
     [ObservableProperty]
-    public partial bool SettingsOpen { get; set; }
+    private bool _settingsOpen;
 
     [ObservableProperty]
-    public partial string ListTitle { get; set; } = "全部待办";
+    private string _listTitle = "全部待办";
 
     [ObservableProperty]
-    public partial string ListCountText { get; set; } = "0";
+    private string _listCountText = "0";
 
     [ObservableProperty]
-    public partial string StatusText { get; set; } = "就绪";
+    private string _statusText = "就绪";
 
     [ObservableProperty]
-    public partial string SnackText { get; set; } = string.Empty;
+    private string _snackText = string.Empty;
 
     [ObservableProperty]
     public partial bool SnackVisible { get; set; }
@@ -129,28 +129,28 @@ public partial class MainViewModel : ObservableObject,
     }
 
     [ObservableProperty]
-    public partial bool EmptyVisible { get; set; }
+    private bool _emptyVisible;
 
     [ObservableProperty]
-    public partial int SelectedDayIndex { get; set; } = DateTime.Today.Day;
+    private int _selectedDayIndex = DateTime.Today.Day;
 
     [ObservableProperty]
-    public partial string MonthTitle { get; set; } = $"{DateTime.Today.Year}年{DateTime.Today.Month}月";
+    private string _monthTitle = $"{DateTime.Today.Year}年{DateTime.Today.Month}月";
 
     [ObservableProperty]
-    public partial string DayTitle { get; set; } = $"{DateTime.Today.Month}月{DateTime.Today.Day}日";
+    private string _dayTitle = $"{DateTime.Today.Month}月{DateTime.Today.Day}日";
 
     [ObservableProperty]
-    public partial string QuickTitle { get; set; } = string.Empty;
+    private string _quickTitle = string.Empty;
 
     [ObservableProperty]
-    public partial DateOnly? QuickPlannedDate { get; set; }
+    private DateOnly? _quickPlannedDate;
 
     [ObservableProperty]
-    public partial TodoPriority QuickPriority { get; set; } = TodoPriority.Medium;
+    private TodoPriority _quickPriority = TodoPriority.Medium;
 
     [ObservableProperty]
-    public partial int StatusFilterIndex { get; set; }
+    private int _statusFilterIndex;
 
     /// <summary>主列表（分组前的扁平数据）。</summary>
     public ObservableCollection<TodoItemVm> Items { get; } = new();

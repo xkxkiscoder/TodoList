@@ -41,6 +41,9 @@ public sealed partial class MainWindow : Window
     private TodoItemVm? _expandedStatusVm;
     private readonly Dictionary<string, bool> _groupExpanded = new();
 
+    private TrayIconService? _tray;
+    private bool _exitRequested; // 托盘菜单"退出"时置位，区别于点 X 隐藏到托盘
+
     public MainWindow()
     {
         InitializeComponent();
@@ -58,6 +61,16 @@ public sealed partial class MainWindow : Window
         Root.KeyDown += Root_KeyDown;
         Closed += MainWindow_Closed;
 
+        // WAS 1.5 的 Window 无 Closing 事件：子类化 WndProc 拦截 WM_CLOSE（Alt+F4/系统关闭）
+        HookWindowClose();
+
+        // 托盘：窗口不在任务栏/Alt-Tab 显示，常驻通知区域
+        AppWindow.IsShownInSwitchers = false;
+        _tray = new TrayIconService();
+        _tray.ActivateRequested += ShowMainWindowFromTray;
+        _tray.ExitRequested += ExitFromTray;
+        _tray.Start();
+
         ViewModel.EditRequested += (_, vm) => OpenDetail(vm);
         ViewModel.GroupsChanged += (_, _) => UpdateEmptyState();
 
@@ -68,6 +81,56 @@ public sealed partial class MainWindow : Window
             _ => ViewMode.All
         });
     }
+
+    /// <summary>从托盘恢复：WinUI 3 的 Window 无 Show()，用 user32 ShowWindow 恢复。</summary>
+    private void ShowMainWindowFromTray()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            var hwnd = WindowNative.GetWindowHandle(this);
+            NativeMethods.ShowWindow(hwnd, NativeMethods.SW_RESTORE);
+            Activate();
+        });
+    }
+
+    private void ExitFromTray()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            _exitRequested = true;
+            Close();
+        });
+    }
+
+    // ───────── 关闭 → 隐藏到托盘 ─────────
+
+    private NativeMethods.WndProcDelegate? _hookedWndProc; // 保活，防止被 GC
+
+    /// <summary>
+    /// 子类化主窗口 WndProc：拦截 WM_CLOSE（Alt+F4、系统关闭），未请求退出时改为隐藏到托盘。
+    /// WAS 1.5 的 Window 没有 Closing 事件，只能在 Win32 层拦截。
+    /// </summary>
+    private void HookWindowClose()
+    {
+        var hwnd = WindowNative.GetWindowHandle(this);
+        _hookedWndProc = WndProcHook;
+        var newProc = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(_hookedWndProc);
+        _prevWndProc = NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWLP_WNDPROC, newProc);
+    }
+
+    private IntPtr WndProcHook(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+    {
+        const uint WmClose = 0x0010;
+        if (msg == WmClose && !_exitRequested)
+        {
+            // WAS 1.5 的 Window 无 Hide()，用 user32 隐藏到托盘，不销毁窗口
+            NativeMethods.ShowWindow(hWnd, NativeMethods.SW_HIDE);
+            return IntPtr.Zero;
+        }
+        return NativeMethods.CallWindowProc(_prevWndProc, hWnd, msg, wParam, lParam);
+    }
+
+    private IntPtr _prevWndProc;
 
     // ───────── window chrome ─────────
 
@@ -103,11 +166,134 @@ public sealed partial class MainWindow : Window
             // ignore
         }
 
-        SizeChanged += (_, _) => DispatcherQueue.TryEnqueue(UpdateDragRegions);
+        SizeChanged += (_, _) =>
+        {
+            ApplyAdaptiveStates();
+            DispatcherQueue.TryEnqueue(UpdateDragRegions);
+        };
         AppWindow.Changed += (_, _) => DispatcherQueue.TryEnqueue(UpdateDragRegions);
         if (Root is not null)
-            Root.Loaded += (_, _) => DispatcherQueue.TryEnqueue(UpdateDragRegions);
+            Root.Loaded += (_, _) =>
+            {
+                ApplyAdaptiveStates();
+                DispatcherQueue.TryEnqueue(UpdateDragRegions);
+            };
         UpdateDragRegions();
+    }
+
+    /// <summary>
+    /// 自适应布局（实测结论见 AGENTS.md §3.1）：
+    /// AdaptiveTrigger / GoToState 在本项目（WinUI 3 Window 直接内容、无 Page）
+    /// 均不可用——状态组能读到但既不自动评估、GoToState 也返回 false。
+    /// 故用 SizeChanged 驱动的集中函数切换，规则本身仍按状态组组织。
+    /// </summary>
+    private void ApplyAdaptiveStates()
+    {
+        UpdateQuickAddLayout();
+        UpdateCalendarLayout();
+    }
+
+    private bool? _quickAddNarrow;
+
+    /// <summary>空间不足时快速添加行换行为两行：标题独占第一行。</summary>
+    private void UpdateQuickAddLayout()
+    {
+        if (QuickAddRow is null || QuickTitle is null || QuickPriority is null
+            || QuickDate is null || QuickAddButton is null)
+            return;
+        if (QuickAddRow.ActualWidth <= 0)
+            return;
+
+        var narrow = QuickAddRow.ActualWidth < 520;
+        if (_quickAddNarrow == narrow)
+            return;
+        _quickAddNarrow = narrow;
+
+        var cols = QuickAddRow.ColumnDefinitions;
+        if (narrow)
+        {
+            // 列宽：优先级按内容收窄，计划日吃满剩余直到按钮
+            cols[0].Width = new GridLength(1, GridUnitType.Auto);
+            cols[1].Width = new GridLength(1, GridUnitType.Star);
+            cols[2].Width = new GridLength(0);
+
+            // 第一行：标题占满整行
+            Grid.SetRow(QuickTitle, 0);
+            Grid.SetColumn(QuickTitle, 0);
+            Grid.SetColumnSpan(QuickTitle, 4);
+
+            // 第二行：优先级 + 计划日 + 添加按钮
+            Grid.SetRow(QuickPriority, 1);
+            Grid.SetColumn(QuickPriority, 0);
+            Grid.SetColumnSpan(QuickPriority, 1);
+            Grid.SetRow(QuickDate, 1);
+            Grid.SetColumn(QuickDate, 1);
+            Grid.SetColumnSpan(QuickDate, 2);
+            Grid.SetRow(QuickAddButton, 1);
+            Grid.SetColumn(QuickAddButton, 3);
+            Grid.SetColumnSpan(QuickAddButton, 1);
+        }
+        else
+        {
+            cols[0].Width = new GridLength(1, GridUnitType.Star);
+            cols[1].Width = new GridLength(110);
+            cols[2].Width = new GridLength(120);
+
+            Grid.SetRow(QuickTitle, 0);
+            Grid.SetColumn(QuickTitle, 0);
+            Grid.SetColumnSpan(QuickTitle, 1);
+            Grid.SetRow(QuickPriority, 0);
+            Grid.SetColumn(QuickPriority, 1);
+            Grid.SetColumnSpan(QuickPriority, 1);
+            Grid.SetRow(QuickDate, 0);
+            Grid.SetColumn(QuickDate, 2);
+            Grid.SetColumnSpan(QuickDate, 1);
+            Grid.SetRow(QuickAddButton, 0);
+            Grid.SetColumn(QuickAddButton, 3);
+            Grid.SetColumnSpan(QuickAddButton, 1);
+        }
+    }
+
+    private bool? _calendarNarrow;
+
+    /// <summary>空间不足时日历改上下堆叠：月历在第一行，当日计划在第二行。</summary>
+    private void UpdateCalendarLayout()
+    {
+        if (CalendarPanel is null || MonthCard is null || DayPlanCard is null)
+            return;
+        if (CalendarPanel.ActualWidth <= 0)
+            return;
+
+        var narrow = CalendarPanel.ActualWidth < 600;
+        if (_calendarNarrow == narrow)
+            return;
+        _calendarNarrow = narrow;
+
+        var cols = CalendarPanel.ColumnDefinitions;
+        if (narrow)
+        {
+            cols[1].Width = new GridLength(0);
+
+            Grid.SetRow(MonthCard, 0);
+            Grid.SetColumn(MonthCard, 0);
+            Grid.SetColumnSpan(MonthCard, 2);
+
+            Grid.SetRow(DayPlanCard, 1);
+            Grid.SetColumn(DayPlanCard, 0);
+            Grid.SetColumnSpan(DayPlanCard, 2);
+        }
+        else
+        {
+            cols[1].Width = new GridLength(240);
+
+            Grid.SetRow(MonthCard, 0);
+            Grid.SetColumn(MonthCard, 0);
+            Grid.SetColumnSpan(MonthCard, 1);
+
+            Grid.SetRow(DayPlanCard, 0);
+            Grid.SetColumn(DayPlanCard, 1);
+            Grid.SetColumnSpan(DayPlanCard, 1);
+        }
     }
 
     /// <summary>工具栏空白区可拖动；右侧按钮区排除在外，保证单击可用。</summary>
@@ -167,6 +353,8 @@ public sealed partial class MainWindow : Window
             }
 
             AddRect(tbLeft, segsLeft - 6);
+            // 右侧拖拽区只到按钮区左边界之前；折叠态下边界取设置按钮右侧，
+            // 让折叠关闭按钮与下方浮层都可点击（act.X 已是 ActionsPanel 整体左边界）。
             AddRect(segsRight + 6, actLeft - 8);
 
             AppWindow.TitleBar.SetDragRectangles(
@@ -178,39 +366,15 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void UpdateMaxIcon()
-    {
-        var maximized = AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p
-            && p.State == OverlappedPresenterState.Maximized;
-        if (MaxIcon is not null)
-            MaxIcon.Glyph = maximized ? "\uE923" : "\uE922";
-    }
-
-    private void MinButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
-            presenter.Minimize();
-        else
-            Close();
-    }
-
-    private void MaxButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
-        {
-            if (presenter.State == OverlappedPresenterState.Maximized)
-                presenter.Restore();
-            else
-                presenter.Maximize();
-
-            UpdateMaxIcon();
-            DispatcherQueue.TryEnqueue(UpdateDragRegions);
-        }
-    }
-
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
-        Close();
+        if (_exitRequested)
+        {
+            Close();
+            return;
+        }
+        // 点 X 隐藏到托盘（图标常驻，可恢复或从菜单退出）
+        NativeMethods.ShowWindow(WindowNative.GetWindowHandle(this), NativeMethods.SW_HIDE);
     }
 
     private void ApplyWindowSettings()
@@ -336,7 +500,6 @@ public sealed partial class MainWindow : Window
             }
         }
 
-        UpdateMaxIcon();
         DispatcherQueue.TryEnqueue(UpdateDragRegions);
     }
 
@@ -353,6 +516,10 @@ public sealed partial class MainWindow : Window
             _ => 0
         };
         _settings.Save();
+
+        // 真正退出时清理托盘图标与消息窗口
+        _tray?.Dispose();
+        _tray = null;
     }
 
     private void PersistWindowBounds()
@@ -452,6 +619,10 @@ public sealed partial class MainWindow : Window
 
         ListPanel.Visibility = mode == ViewMode.Calendar ? Visibility.Collapsed : Visibility.Visible;
         CalendarPanel.Visibility = mode == ViewMode.Calendar ? Visibility.Visible : Visibility.Collapsed;
+
+        // 面板首次可见时 ActualWidth 要等布局 pass 完成，入队补算（否则窄态不生效）
+        if (mode == ViewMode.Calendar)
+            DispatcherQueue.TryEnqueue(UpdateCalendarLayout);
 
         ListTitle.Text = mode == ViewMode.Today ? "今日计划" : "全部待办";
         Refresh();
@@ -754,11 +925,6 @@ public sealed partial class MainWindow : Window
         QuickTitle.Text = string.Empty;
         QuickDate.Date = null;
         Refresh();
-        QuickTitle.Focus(FocusState.Programmatic);
-    }
-
-    private void NewButton_Click(object sender, RoutedEventArgs e)
-    {
         QuickTitle.Focus(FocusState.Programmatic);
     }
 
@@ -1104,6 +1270,11 @@ internal static class NativeMethods
     public const uint SWP_NOSIZE = 0x0001;
     public const uint SWP_NOMOVE = 0x0002;
     public const uint SWP_NOACTIVATE = 0x0010;
+    public const int SW_RESTORE = 9;
+    public const int SW_HIDE = 0;
+    public const int GWLP_WNDPROC = -4;
+
+    public delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
     public static extern bool SetWindowPos(
@@ -1117,4 +1288,13 @@ internal static class NativeMethods
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     public static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+    public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "CallWindowProcW")]
+    public static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 }
