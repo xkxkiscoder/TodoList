@@ -110,6 +110,20 @@
                             Margin="4,0"
                             VerticalAlignment="Center"
                             Background="{ThemeResource GlassBorderBrush}" />
+                        <!--  缩小为气泡：隐藏主窗口并在桌面留一个悬浮气泡  -->
+                        <Button
+                            x:Name="BubbleButton"
+                            Click="BubbleButton_Click"
+                            Style="{StaticResource IconBtnStyle}"
+                            ToolTipService.ToolTip="缩小为气泡">
+                            <FontIcon FontSize="14" Glyph="&#xE8A5;" />
+                        </Button>
+                        <Border
+                            Width="1"
+                            Height="18"
+                            Margin="4,0"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource GlassBorderBrush}" />
                         <!--  仅保留关闭按钮  -->
                         <Button
                             x:Name="CloseButton"

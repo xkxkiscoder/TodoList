@@ -44,6 +44,10 @@ public sealed partial class MainWindow : Window
     private TrayIconService? _tray;
     private bool _exitRequested; // 托盘菜单"退出"时置位，区别于点 X 隐藏到托盘
 
+    // 缩小为气泡：主窗口隐藏，桌面留一个悬浮气泡显示未完成数
+    private readonly BubbleWindowService _bubble = new();
+    private int _bubblePendingCount;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -73,6 +77,10 @@ public sealed partial class MainWindow : Window
 
         ViewModel.EditRequested += (_, vm) => OpenDetail(vm);
         ViewModel.GroupsChanged += (_, _) => UpdateEmptyState();
+        ViewModel.GroupsChanged += (_, _) => UpdateBubbleCount();
+
+        // 气泡模式：点击气泡恢复主窗口
+        _bubble.RestoreRequested += RestoreFromBubble;
 
         ShowView(_settings.LastView switch
         {
@@ -80,6 +88,7 @@ public sealed partial class MainWindow : Window
             2 => ViewMode.Calendar,
             _ => ViewMode.All
         });
+        UpdateBubbleCount();
     }
 
     /// <summary>从托盘恢复：WinUI 3 的 Window 无 Show()，用 user32 ShowWindow 恢复。</summary>
@@ -87,6 +96,12 @@ public sealed partial class MainWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         {
+            // 气泡模式下从托盘恢复：一并收起气泡
+            if (_bubble.IsActive)
+            {
+                _bubble.ExitBubbleMode(this);
+                return;
+            }
             var hwnd = WindowNative.GetWindowHandle(this);
             NativeMethods.ShowWindow(hwnd, NativeMethods.SW_RESTORE);
             Activate();
@@ -377,6 +392,42 @@ public sealed partial class MainWindow : Window
         NativeMethods.ShowWindow(WindowNative.GetWindowHandle(this), NativeMethods.SW_HIDE);
     }
 
+    // ───────── 缩小为气泡 ─────────
+
+    /// <summary>统计气泡上要展示的未完成数（不含已完成）。</summary>
+    private int CountPending()
+    {
+        var n = 0;
+        foreach (var item in ViewModel.Items)
+            if (item.Status != TodoStatus.Completed) n++;
+        return n;
+    }
+
+    /// <summary>数据变化时刷新气泡数字（气泡未创建时只缓存，不建窗口）。</summary>
+    private void UpdateBubbleCount()
+    {
+        _bubblePendingCount = CountPending();
+        if (_bubble.IsActive)
+            _bubble.UpdateCount(_bubblePendingCount);
+    }
+
+    /// <summary>气泡按钮：隐藏主窗口，在桌面显示悬浮气泡。</summary>
+    private void BubbleButton_Click(object sender, RoutedEventArgs e)
+    {
+        _bubblePendingCount = CountPending();
+        _bubble.EnterBubbleMode(this, _bubblePendingCount);
+    }
+
+    /// <summary>点击气泡：恢复主窗口（气泡窗口保留复用，仅隐藏）。</summary>
+    private void RestoreFromBubble()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!_bubble.IsActive) return;
+            _bubble.ExitBubbleMode(this);
+        });
+    }
+
     private void ApplyWindowSettings()
     {
         var hwnd = WindowNative.GetWindowHandle(this);
@@ -520,6 +571,10 @@ public sealed partial class MainWindow : Window
         // 真正退出时清理托盘图标与消息窗口
         _tray?.Dispose();
         _tray = null;
+
+        // 清理气泡窗口
+        _bubble.RestoreRequested -= RestoreFromBubble;
+        _bubble.Dispose();
     }
 
     private void PersistWindowBounds()
